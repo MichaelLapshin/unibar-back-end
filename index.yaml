@@ -24,18 +24,15 @@ paths:
         in: header
         required: true
         schema:
-          type: string
+          $ref: "#/components/schemas/Email"
       - name: password
-        description: Password used for user to sign-in in the future.
+        description: Password used for user to sign-in with.
         in: header
         required: true
         schema:
-          type: string
-          format: password
-    put:
+          $ref: "#/components/schemas/Password"
+    post:
       summary: Create a new user.
-      security:
-        - UserToken: []
       responses:
         200:
           description: Successfully registered a new user.
@@ -46,21 +43,23 @@ paths:
           
   /users/login:
     description: Logging in a user.
-    parameters:
-      - name: email
-        description: User email for logging in.
-        in: header
-        required: true
-        schema:
-          $ref: "#/components/schemas/Email"
-      - name: password
-        description: User password for logging in.
-        required: true
-        in: header
-        schema:
-          $ref: "#/components/schemas/Password"
+    # parameters:
+    #   - name: email
+    #     description: User email for logging in.
+    #     in: header
+    #     required: true
+    #     schema:
+    #       $ref: "#/components/schemas/Email"
+    #   - name: password
+    #     description: User password for logging in.
+    #     required: true
+    #     in: header
+    #     schema:
+    #       $ref: "#/components/schemas/Password"
     get:
       summary: Log in a user.
+      security:
+        - UserAuth: []
       responses:
         200:
           description: Successfully logged in.
@@ -73,6 +72,28 @@ paths:
                 $ref: "#/components/schemas/UserToken"
         400:
           description: Failed to log in user.
+
+  /user/{user_id}/info:
+    description: Get public information about the user.
+    parameters:
+      - name: user_id
+        description: Identifying the user.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+    get:
+      security:
+        - UserToken: []
+      responses:
+        200:
+          description: Successfully fetched user's public information.
+          content:
+            orders:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          description: Failed to fetch user's public information.
 
   /user/{user_id}/orders/delivering:
     description: Fetch the user's order that they are delivering.
@@ -131,52 +152,48 @@ paths:
         in: path
         schema:
           $ref: "#/components/schemas/UserID"
-      - name: request
-        description: Delivery request of the user.
+      - name: order
+        description: Delivery request order of the user.
         required: true
         in: header
         schema:
-          $ref: "#/components/schemas/Request"
+          $ref: "#/components/schemas/Order"
     put:
       security:
         - UserToken: []
       responses:
         200:
           description: Successfully created a delivery request.
-          content:
-            request_id:
-              schema:
-                type: string
         400:
           description: Failed to create a delivery request.
 
   /user/{user_id}/order/deliver:
-    description: Indicate 
+    description: Indicate which order the user intends to fulfill.
     parameters:
       - name: user_id
         description: User to fulfil the order.
         required: true
         in: path
         schema:
-          $ref: "#/components/schemas/UserAuth"
+          $ref: "#/components/schemas/UserID"
       - name: order_id
         description: Order to deliver.
         required: true
         in: header
         schema:
-          type: string
+          $ref: "#/components/schemas/OrderID"
     put: 
       security:
         - UserToken: []
       responses:
         200:
-          description: Succesfully
+          description: Succesfully indicated that user intends to fulfill the order.
         400:
           description: Could not fulfil the order.
         409:
-          description: Order is currently being fulfilled.
+          description: Order is currently being fulfilled by another user.
 
-  /user/{user_id}/token/transfer:
+  /user/{user_id}/tokens/transfer:
     description: Transfer one token from one user to another.
     parameters:
       - name: user_id
@@ -198,32 +215,14 @@ paths:
         schema:
           $ref: "#/components/schemas/OrderID"
     put:
-      200:
-        description: Successfully transfered the token.
-
-  /user/{user_id}/token/remaining:
-    description: List the number of tokens remaining for the user.
-    parameters:
-      - name: user_id
-        description: User that is requesting its remaining tokens.
-        required: true
-        in: path
-        schema:
-          $ref: "#/components/schemas/UserID"
-    get:
       security:
         - UserToken: []
       responses:
         200:
-          description: Successfully fetched delivery tokens remaining for the user.
-          content:
-            tokens:
-              schema:
-                $ref: "#/components/schemas/Tokens"
-      
+          description: Successfully transfered the token.
 
   /orders/available:
-    description: Lists all orders available to fulfill.
+    description: Lists all orders currently available to fulfill.
     get:
       responses:
         200:
@@ -257,13 +256,13 @@ paths:
         400:
           description: Failed to fetch orders.
 
-  /admin/{admin_id}/users/list:
+  /admin/users/list:
     description: Lists all user IDs.
     parameters:
       - name: admin_id
         description: Identification of the admin.
         required: true
-        in: path
+        in: header
         schema:
           $ref: "#/components/schemas/AdminID"
     get:
@@ -281,13 +280,13 @@ paths:
         400:
           description: Failed to fetch all user IDs.
 
-  /admin/{admin_id}/user/{user_id}:
+  /admin/user/{user_id}:
     description: Lists specific user information (password & access token redacted).
     parameters:
       - name: admin_id
         description: Identification of the admin.
         required: true
-        in: path
+        in: header
         schema:
           $ref: "#/components/schemas/AdminID"
       - name: user_id
@@ -307,13 +306,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
 
-  /admin/{admin_id}/orders/list:
+  /admin/orders/list:
     description: Lists all order IDs.
     parameters:
       - name: admin_id
         description: Identification of the admin.
         required: true
-        in: path
+        in: header
         schema:
           $ref: "#/components/schemas/AdminID"
     get:
@@ -345,6 +344,7 @@ components:
     UserID:
       description: Identification of a user.
       type: string
+      format: uuid
     Name:
       description: User's display name.
       type: string
@@ -352,6 +352,10 @@ components:
       description: Email format.
       type: string
       format: email
+    PhoneNumber:
+      description: Phone number format.
+      type: string
+      pattern: ^\d{10}$
     Password:
       description: Password format.
       type: string
@@ -370,17 +374,23 @@ components:
           $ref: "#/components/schemas/Name"
         email:
           $ref: "#/components/schemas/Email"
+        phone_number:
+          $ref: "#/components/schemas/PhoneNumber"
         tokens:
           $ref: "#/components/schemas/Tokens"
     AdminID:
       description: Identification of a admin.
       type: string
+      format: uuid
   securitySchemes:
+    UserAuth:
+      type: http
+      scheme: basic
     UserToken:
       type: apiKey
-      in: header
+      in: cookie
       name: user_token
     AdminToken:
       type: apiKey
-      in: header
+      in: cookie
       name: admin_token
