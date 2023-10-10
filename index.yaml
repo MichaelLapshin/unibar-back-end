@@ -5,8 +5,10 @@ info:
   description: API definition for interacting with the back-end system.
 
 servers:
-  - url: localhost:3000
+  - url: localhost
     description: Local test server.
+  - url: dev.unibar.xyz
+    description: Developement server.
 
 paths:
   /ping:
