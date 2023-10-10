@@ -1,0 +1,138 @@
+openapi: '3.0.0'
+info:
+  version: '1.0.0'
+  title: 'UniBar API'
+  description: API definition for interacting with the back-end system.
+
+servers:
+  - url: localhost:3000
+    description: Local test server.
+
+paths:
+  /:
+    description: Hello world!
+  /user/register:
+    description: Registering a user.
+    parameters:
+      - name: email
+        description: Email of the user to create.
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: password
+        description: Password used for user to sign-in in the future.
+        in: header
+        required: true
+        schema:
+          type: string
+          format: password
+    put:
+      summary: Create a new user.
+      security:
+        - ApiKey: []
+      responses:
+        200:
+          description: Successfully registered a new user.
+        400:
+          description: Failed to register a new user.
+        403:
+          description: User already exists.
+          
+  /user/login:
+    description: Logging in a user.
+    parameters:
+      - name: email
+        description: User email for logging in.
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: password
+        description: User password for logging in.
+        required: true
+        in: header
+        schema:
+          type: string
+          format: password
+    get:
+      summary: Log in a user.
+      responses:
+        200:
+          description: Successfully logged in {user_id}.
+          headers:
+            user_auth:
+              schema:
+                $ref: "#/components/schemas/UserAuth"
+
+        400:
+          description: Failed to log in user.
+
+  /user/order/request:
+    description: Create a new delivery request.
+
+  /user/order/deliver:
+    description: Indicate 
+    parameters:
+      - name: user
+        description: User to fulfil the order.
+        required: true
+        in: header
+        schema:
+          $ref: "#/components/schemas/UserAuth"
+      - name: order_id
+        description: Order to deliver.
+        required: true
+        in: header
+        schema:
+          type: string
+    put:
+      200:
+        description: Succesfully
+      400:
+        description: Could not fulfil the order.
+      409:
+        description: Order is currently being fulfilled.
+
+  /user/token/transfer:
+    description: Transfer one token from one user to another.
+    parameters:
+      - name: sender
+        description: User 
+        required: true
+        in: header
+        schema:
+          $ref: "#/components/schemas/UserID"
+      - name: receiver
+        description: User 
+        required: true
+        in: header
+        schema:
+          $ref: "#/components/schemas/UserID"
+
+components:
+  schemas:
+    UserID:
+      description: Identification of a user.
+      type: string
+    UserAuth:
+      description: Key for authorizing a user in the current session.
+      type: object
+      required:
+        - user_id
+        - api_key
+      properties:
+        user_id:
+          type: string
+        api_key:
+          $ref: "#/components/securitySchemes/ApiKey"
+    AdminAccess:
+      description: Administrative access to the system.
+      $ref: "#/components/schemas/UserAuth"
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: api_key
+security:
+  - ApiKey: []
