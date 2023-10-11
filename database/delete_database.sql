@@ -4,4 +4,4 @@ DROP TABLE `UniBar`.`Order`;
 DROP TABLE `UniBar`.`Report`;
 DROP TABLE `UniBar`.`Contact`;
 
-DROP SCHEMA `UniBar`;
+DROP DATABASE `UniBar`;

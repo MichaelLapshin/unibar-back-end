@@ -22,21 +22,21 @@ CREATE TABLE `UniBar`.`Admins` (
     UNIQUE (`admin_token`)
 );
 
-CREATE TABLE `UniBar`.`Orders` (
+CREATE TABLE UniBar.Orders (
     `order_id` CHAR(36) NOT NULL,
     `orderer_id` CHAR(36) NOT NULL,
     `deliverer_id` CHAR(36) NOT NULL,
 
     `creation_time` DATETIME NOT NULL,
     `deadline_time` DATETIME NOT NULL,
-    `dispatch_time` DATETIME,
+    `claimed_time` DATETIME,
     `fulfilled_time` DATETIME,
 
     `order` varchar(250) NOT NULL,
     `source` varchar(250) NOT NULL,
     `destination` varchar(250) NOT NULL,
     `payment_method` ENUM(`cash`, `etransfer`) NOT NULL,
-    `status` ENUM(`available`, `dispatched`, `delivered`, `cancelled`) NOT NULL,
+    `status` ENUM(`available`, `claimed`, `delivered`, `cancelled`) NOT NULL,
 
     PRIMARY KEY (`order_id`),
     FOREIGN KEY (`orderer_id`) REFERENCES `UniBar`.`Users`(`user_id`),
