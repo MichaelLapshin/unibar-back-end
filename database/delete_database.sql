@@ -1,6 +1,6 @@
-DROP TABLE `UniBar`.`Report`;
-DROP TABLE `UniBar`.`Order`;
-DROP TABLE `UniBar`.`Contact`;
+DROP TABLE `UniBar`.`Reports`;
+DROP TABLE `UniBar`.`Orders`;
+DROP TABLE `UniBar`.`Messages`;
 DROP TABLE `UniBar`.`Users`;
 DROP TABLE `UniBar`.`Admins`;
 
