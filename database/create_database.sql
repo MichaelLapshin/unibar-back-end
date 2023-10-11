@@ -64,7 +64,7 @@ CREATE TABLE `UniBar`.`Messages` (
     `user_id` CHAR(36),
     `email` VARCHAR(32),
     `message` VARCHAR(500) NOT NULL,
-    `time` DATETIME NOT NULL
+    `time` DATETIME NOT NULL,
 
     PRIMARY KEY (`message_id`),
     FOREIGN KEY (`user_id`) REFERENCES `UniBar`.`Users`(`user_id`)
