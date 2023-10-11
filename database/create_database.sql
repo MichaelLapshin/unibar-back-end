@@ -22,7 +22,7 @@ CREATE TABLE `UniBar`.`Admins` (
     UNIQUE (`admin_token`)
 );
 
-CREATE TABLE UniBar.Orders (
+CREATE TABLE `UniBar`.`Orders` (
     `order_id` CHAR(36) NOT NULL,
     `orderer_id` CHAR(36) NOT NULL,
     `deliverer_id` CHAR(36) NOT NULL,
@@ -35,8 +35,8 @@ CREATE TABLE UniBar.Orders (
     `order` varchar(250) NOT NULL,
     `source` varchar(250) NOT NULL,
     `destination` varchar(250) NOT NULL,
-    `payment_method` ENUM(`cash`, `etransfer`) NOT NULL,
-    `status` ENUM(`available`, `claimed`, `delivered`, `cancelled`) NOT NULL,
+    `payment_method` ENUM('cash', 'etransfer') NOT NULL,
+    `status` ENUM('available', 'claimed', 'delivered', 'cancelled') NOT NULL,
 
     PRIMARY KEY (`order_id`),
     FOREIGN KEY (`orderer_id`) REFERENCES `UniBar`.`Users`(`user_id`),
