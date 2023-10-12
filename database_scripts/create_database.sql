@@ -15,7 +15,7 @@ CREATE TABLE `UniBar`.`Users` (
 CREATE TABLE `UniBar`.`Admins` (
     `admin_id` CHAR(36) NOT NULL,
     `name` VARCHAR(32) NOT NULL,
-    `admin_token` VARCHAR(36) NOT NULL,
+    `admin_token` VARCHAR(32) NOT NULL,
     `registered_time` DATETIME NOT NULL,
 
     PRIMARY KEY (`admin_id`),
