@@ -1,0 +1,545 @@
+openapi: '3.0.0'
+info:
+  version: '1.0.0'
+  title: 'UniBar API'
+  description: API definition for interacting with the back-end system.
+
+servers:
+  - url: localhost
+    description: Local test server.
+  - url: dev.unibar.xyz
+    description: Developement server.
+  - url: prod.unibar.xyz
+    description: Production server.
+
+paths:
+  /ping:
+    description: Pings the server.
+    get:
+      responses:
+        200:
+          description: Successful ping from the server.
+  
+  /message:
+    description: Send a message to UniBar.
+    parameters:
+      - name: user_id
+        description: User that wants to send a message.
+        in: header
+        required: false
+        schema:
+          $ref: "#/components/schemas/UserID"
+      - name: email
+        description: Email of the person sending the message.
+        in: header
+        required: false
+        schema:
+          $ref: "#/components/schemas/Email"
+      - name: message
+        description: Message to send to UniBar.
+        in: header
+        required: true
+        schema:
+          type: string
+    get:
+      responses:
+        200:
+          description: Successfully sent a message to UniBar.
+        400:
+          description: Failed to send a message to UniBar.
+
+  /users/register:
+    description: Registering a user.
+    parameters:
+      - name: email
+        description: Email of the user to create.
+        in: header
+        required: true
+        schema:
+          $ref: "#/components/schemas/Email"
+      - name: password
+        description: Password used for user to sign-in with.
+        in: header
+        required: true
+        schema:
+          $ref: "#/components/schemas/Password"
+      - name: name
+        description: Name of the new user.
+        in: header
+        required: true
+        schema:
+          $ref: "#/components/schemas/Name"
+      - name: phone_number
+        description: Phone number of the new user.
+        in: header
+        required: false
+        schema:
+          $ref: "#/components/schemas/PhoneNumber"
+    post:
+      summary: Create a new user.
+      responses:
+        200:
+          description: Successfully registered a new user.
+        400:
+          description: Failed to register a new user.
+        403:
+          description: User already exists.
+          
+  /users/login:
+    description: Logging in a user.
+    get:
+      summary: Log in a user.
+      security:
+        - UserAuth: []
+      responses:
+        200:
+          description: Successfully logged in.
+          content:
+            user_id:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        400:
+          description: Failed to log in user.
+
+  /user/{user_id}/info:
+    description: Get public information about the user.
+    parameters:
+      - name: user_id
+        description: Identifying the user.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+    get:
+      security:
+        - UserToken: []
+        - AdminToken: []
+      responses:
+        200:
+          description: Successfully fetched user's public information.
+          content:
+            orders:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          description: Failed to fetch user's public information.
+
+  /user/{user_id}/orders/delivering:
+    description: Fetch the user's orders that they are claiming to be delivering.
+    parameters:
+      - name: user_id
+        description: Identifying the user.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+    get:
+      security:
+        - UserToken: []
+        - AdminToken: []
+      responses:
+        200:
+          description: Succesfully fetched user's claimed orders to be delivering.
+          content:
+            orders:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        400:
+          description: Failed to fetch user's claimed orders to be delivering.
+
+  /user/{user_id}/orders/requesting:
+    description: Fetch the user's order that they are requesting.
+    parameters:
+      - name: user_id
+        description: Identifying the user.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+    get:
+      security:
+        - UserToken: []
+        - AdminToken: []
+      responses:
+        200:
+          description: Succesfully fetched user's active orders.
+          content:
+            orders:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        400:
+          description: Failed to fetch user's active delivery requests.
+
+  /user/{user_id}/order/request:
+    description: Create a new delivery request.
+    parameters:
+      - name: user_id
+        description: Identifying the user.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+      - name: order
+        description: Delivery request order of the user.
+        required: true
+        in: header
+        schema:
+          $ref: "#/components/schemas/Order"
+    put:
+      security:
+        - UserToken: []
+        - AdminToken: []
+      responses:
+        200:
+          description: Successfully created a delivery request.
+        400:
+          description: Failed to create a delivery request.
+
+  /user/{user_id}/order/deliver:
+    description: Indicate which order the user intends to fulfill.
+    parameters:
+      - name: user_id
+        description: User to fulfil the order.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+      - name: order_id
+        description: Order to deliver.
+        required: true
+        in: header
+        schema:
+          $ref: "#/components/schemas/OrderID"
+    put: 
+      security:
+        - UserToken: []
+        - AdminToken: []
+      responses:
+        200:
+          description: Succesfully indicated that user intends to fulfill the order.
+        400:
+          description: Could not fulfil the order.
+        409:
+          description: Order is currently being fulfilled by another user.
+
+  /user/{user_id}/order/report:
+    description: Reports another user in the context of the order.
+    parameters:
+      - name: user_id
+        description: User that is reporting.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+      - name: reported_id
+        description: User that is reported.
+        required: true
+        in: header
+        schema:
+          $ref: "#/components/schemas/UserID"
+      - name: order_id
+        description: Order in which the report happened.
+        required: true
+        in: header
+        schema:
+          $ref: "#/components/schemas/UserID"
+      - name: message
+        description: Report message from the user reporting.
+        required: true
+        in: header
+        schema:
+          $ref: "#/components/schemas/UserID"
+    put:
+      security:
+        - UserToken: []
+        - AdminToken: []
+      responses:
+        200:
+          description: Successfully reported the user.
+        400:
+          description: Failed to report the user.
+
+  /user/{user_id}/order/complete:
+    description: Completes the order and performs necessary delivery-token transfer from food receiver to deliverer.
+    parameters:
+      - name: user_id
+        description: User whose order is complete and is giving a delivery-token to the deliverer.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+      - name: order_id
+        description: Order that is complete and for which a delivery-token must be transfered.
+        required: true
+        in: header
+        schema:
+          $ref: "#/components/schemas/OrderID"
+    put:
+      security:
+        - UserToken: []
+        - AdminToken: []
+      responses:
+        200:
+          description: Successfully completed the order and transfered the delivery-token from food receiver to the deliverer.
+        400:
+          description: Failed to complete the order and transfer the delivery-token from the food receiver to the deliverer.
+
+  /orders/available:
+    description: Lists all orders currently available to fulfill.
+    get:
+      responses:
+        200:
+          description: Successfully fetched orders available to fulfill.
+          content:
+            orders:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        400:
+          description: Failed to fetch orders available to fulfill.
+
+  /orders/{order_id}:
+    description: Fetch a specific order.
+    parameters:
+      - name: order_id
+        description: Identification of the order.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/OrderID"
+    get:
+      responses:
+        200:
+          description: Successfully fetched order.
+          content:
+            order:
+              schema:
+                $ref: "#/components/schemas/Order"
+        400:
+          description: Failed to fetch orders.
+
+  /admin/users/list:
+    description: Lists all users.
+    get:
+      security:
+        - AdminToken: []
+      responses:
+        200:
+          description: Succesfully fetched all users.
+          content:
+            user_ids:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        400:
+          description: Failed to fetch all users.
+
+  /admin/user/{user_id}:
+    description: Lists specific user information (password & access token redacted).
+    parameters:
+      - name: user_id
+        description: User of which to fetch information about.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+    get:
+      security:
+        - AdminToken: []
+      responses:
+        200:
+          description: Successfully fetched user information.
+          content:
+            user:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /admin/orders/list:
+    description: Lists all orders.
+    get:
+      security:
+        - AdminToken: []
+      responses:
+        200:
+          description: Succesfully fetched all orders.
+          content:
+            user_ids:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        400:
+          description: Failed to fetch all orders.
+
+  /admin/reports/list:
+    description: Lists all user reports.
+    get:
+      security:
+        - AdminToken: []
+      responses:
+        200:
+          description: Succesfully fetched all reports.
+          content:
+            user_ids:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        400:
+          description: Failed to fetch all orders.
+  
+  /admin/messages/list:
+    description: Lists all messages.
+    get:
+      security:
+        - AdminToken: []
+      responses:
+        200:
+          description: Succesfully fetched all messages.
+          content:
+            user_ids:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+        400:
+          description: Failed to fetch all messages.
+
+components:
+  schemas:
+    UserID:
+      description: Identification of a user.
+      type: string
+      format: uuid
+    Name:
+      description: User's display name.
+      type: string
+    Email:
+      description: Email format.
+      type: string
+      format: email
+    PhoneNumber:
+      description: Phone number format.
+      type: string
+      pattern: ^\d{10}$
+    Password:
+      description: Password format.
+      type: string
+      format: password
+    DeliveryTokens:
+      description: Delivery token count.
+      type: integer
+      format: int32
+    User:
+      description: Public-safe user definition.
+      type: object
+      properties:
+        user_id:
+          $ref: "#/components/schemas/UserID"
+        name:
+          $ref: "#/components/schemas/Name"
+        email:
+          $ref: "#/components/schemas/Email"
+        phone_number:
+          $ref: "#/components/schemas/PhoneNumber"
+        delivery_tokens:
+          $ref: "#/components/schemas/DeliveryTokens"
+    OrderID:
+      description: Identification of the order.
+      type: string
+      format: uuid
+    Order:
+      description: Content of the order.
+      type: object
+      properties:
+        order_id:
+          $ref: "#/components/schemas/OrderID"
+        orderer_id:
+          $ref: "#/components/schemas/UserID"
+        deliverer_id:
+          $ref: "#/components/schemas/UserID"
+        creation_time:
+          type: string
+          format: time
+        deadline_time:
+          type: string
+          format: time
+        claimed_time:
+          type: string
+          format: time
+        delivered_time:
+          type: string
+          format: time
+        order:
+          type: string
+        source:
+          type: string
+        destination:
+          type: string
+        payment_method:
+          type: string
+          enum:
+            - cash
+            - etransfer
+        status:
+          type: string
+          enum:
+            - available
+            - claimed
+            - delivered
+            - cancelled
+    Message:
+      description: A user message to UniBar.
+      type: object
+      properties:
+        message_id:
+          type: string
+          format: uuid
+        user_id:
+          $ref: "#/components/schemas/UserID"
+        email:
+         $ref: "#/components/schemas/Email"
+        message:
+          type: string
+        time:
+          type: string
+          format: time
+    Report:
+      description: User report.
+      type: object
+      properties:
+        report_id:
+          type: string
+          format: uuid
+        reporter_user_id:
+          $ref: "#/components/schemas/UserID"
+        reported_user_id:
+          $ref: "#/components/schemas/UserID"
+        order_id:
+          $ref: "#/components/schemas/OrderID"
+        time:
+          type: string
+          format: time
+        message:
+          type: string
+        conclusion:
+          type: string
+  
+  securitySchemes:
+    UserAuth:
+      type: http
+      scheme: basic
+    UserToken:
+      type: apiKey
+      in: cookie
+      name: user_token
+    AdminToken:
+      type: apiKey
+      in: header
+      name: admin_token
