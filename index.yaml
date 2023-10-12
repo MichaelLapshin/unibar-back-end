@@ -438,6 +438,8 @@ components:
           $ref: "#/components/schemas/DeliveryTokens"
     OrderID:
       description: Identification of the order.
+      type: string
+      format: uuid
     Order:
       description: Content of the order.
       type: object
