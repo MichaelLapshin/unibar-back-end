@@ -13,9 +13,9 @@ admin_token=$(openssl rand -hex 16) # 32 digit string
 admin_time=$(date '+%Y-%m-%d %H:%M:%S')
 
 if [[ $# -eq 4 ]]; then
-    mysql -u$db_user -p$db_password -h$db_host -P$db_port < \
-        "INSERT INTO `Admins` (`admin_id`, `name`, `admin_token`, `registered_time`) VALUES \
-        ('$admin_id', '$admin_name', '$admin_token', '$admin_time');"
+    echo "INSERT INTO UniBar.Admins (admin_id, name, admin_token, registered_time) VALUES \
+            ('$admin_id', '$admin_name', '$admin_token', '$admin_time');" \
+            | mysql -u$db_user -p$db_password -h$db_host -P$db_port
     
     echo "=== New admin entry ==="
     echo admin_id: $admin_id
