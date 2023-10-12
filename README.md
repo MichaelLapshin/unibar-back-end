@@ -3,12 +3,18 @@
 ## Creating a database and tables
 1. Fetch the UniBar back-end repository.
 2. Connect to the MySQL server (see steps below)
-3. Run the following SQL script: `database/create_database.sql`
+3. Run the following SQL script: `database_scripts/create_database.sql`
 
 ## Deleting the database and tables
 1. Fetch the UniBar back-end repository.
 2. Connect to the MySQL server (see steps below)
-3. Run the following SQL script: `database/delete_database.sql`
+3. Run the following SQL script: `database_scripts/delete_database.sql`
+
+## Adding a new admin
+1. Fetch the UniBar back-end repository.
+2. Run the following bash script:
+`./database_scripts/insert_new_admin <user> <password> <host> <admin_name>`
+3. Record your admin's generated ID and token.
 
 ## Accessing GitHub from EC2
 ```

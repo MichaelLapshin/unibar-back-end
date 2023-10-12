@@ -63,6 +63,18 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/Password"
+      - name: name
+        description: Name of the new user.
+        in: header
+        required: true
+        schema:
+          $ref: "#/components/schemas/Name"
+      - name: phone_number
+        description: Phone number of the new user.
+        in: header
+        required: false
+        schema:
+          $ref: "#/components/schemas/PhoneNumber"
     post:
       summary: Create a new user.
       responses:
@@ -86,9 +98,6 @@ paths:
             user_id:
               schema:
                 $ref: "#/components/schemas/UserID"
-            # user_token:
-            #   schema:
-            #     $ref: "#/components/schemas/UserToken"
         400:
           description: Failed to log in user.
 
@@ -104,6 +113,7 @@ paths:
     get:
       security:
         - UserToken: []
+        - AdminToken: []
       responses:
         200:
           description: Successfully fetched user's public information.
@@ -115,7 +125,7 @@ paths:
           description: Failed to fetch user's public information.
 
   /user/{user_id}/orders/delivering:
-    description: Fetch the user's order that they are delivering.
+    description: Fetch the user's orders that they are claiming to be delivering.
     parameters:
       - name: user_id
         description: Identifying the user.
@@ -126,9 +136,10 @@ paths:
     get:
       security:
         - UserToken: []
+        - AdminToken: []
       responses:
         200:
-          description: Succesfully fetched user's active orders.
+          description: Succesfully fetched user's claimed orders to be delivering.
           content:
             orders:
               schema:
@@ -136,7 +147,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/Order"
         400:
-          description: Failed to fetch user's active delivered orders.
+          description: Failed to fetch user's claimed orders to be delivering.
 
   /user/{user_id}/orders/requesting:
     description: Fetch the user's order that they are requesting.
@@ -150,6 +161,7 @@ paths:
     get:
       security:
         - UserToken: []
+        - AdminToken: []
       responses:
         200:
           description: Succesfully fetched user's active orders.
@@ -180,6 +192,7 @@ paths:
     put:
       security:
         - UserToken: []
+        - AdminToken: []
       responses:
         200:
           description: Successfully created a delivery request.
@@ -204,6 +217,7 @@ paths:
     put: 
       security:
         - UserToken: []
+        - AdminToken: []
       responses:
         200:
           description: Succesfully indicated that user intends to fulfill the order.
@@ -240,29 +254,26 @@ paths:
         schema:
           $ref: "#/components/schemas/UserID"
     put:
+      security:
+        - UserToken: []
+        - AdminToken: []
       responses:
         200:
           description: Successfully reported the user.
         400:
           description: Failed to report the user.
 
-  /user/{user_id}/tokens/transfer:
-    description: Transfer one token from one user to another.
+  /user/{user_id}/order/complete:
+    description: Completes the order and performs necessary delivery-token transfer from food receiver to deliverer.
     parameters:
       - name: user_id
-        description: User that is giving the delivery token.
+        description: User whose order is complete and is giving a delivery-token to the deliverer.
         required: true
         in: path
         schema:
           $ref: "#/components/schemas/UserID"
-      - name: receiver
-        description: User that is receiving the delivery token.
-        required: true
-        in: header
-        schema:
-          $ref: "#/components/schemas/UserID"
       - name: order_id
-        description: Order for which the delivery token is being transfered.
+        description: Order that is complete and for which a delivery-token must be transfered.
         required: true
         in: header
         schema:
@@ -270,9 +281,12 @@ paths:
     put:
       security:
         - UserToken: []
+        - AdminToken: []
       responses:
         200:
-          description: Successfully transfered the token.
+          description: Successfully completed the order and transfered the delivery-token from food receiver to the deliverer.
+        400:
+          description: Failed to complete the order and transfer the delivery-token from the food receiver to the deliverer.
 
   /orders/available:
     description: Lists all orders currently available to fulfill.
@@ -527,5 +541,5 @@ components:
       name: user_token
     AdminToken:
       type: apiKey
-      in: cookie
+      in: header
       name: admin_token

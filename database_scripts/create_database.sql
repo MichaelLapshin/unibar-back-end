@@ -7,7 +7,7 @@ CREATE TABLE `UniBar`.`Users` (
     `email` VARCHAR(32) NOT NULL,
     `registered_time` DATETIME NOT NULL,
     `delivery_tokens` INT NOT NULL,
-    `phone_number` INT NOT NULL,
+    `phone_number` INT,
 
     PRIMARY KEY (`user_id`)
 );
@@ -25,7 +25,7 @@ CREATE TABLE `UniBar`.`Admins` (
 CREATE TABLE `UniBar`.`Orders` (
     `order_id` CHAR(36) NOT NULL,
     `orderer_id` CHAR(36) NOT NULL,
-    `deliverer_id` CHAR(36) NOT NULL,
+    `deliverer_id` CHAR(36),
 
     `creation_time` DATETIME NOT NULL,
     `deadline_time` DATETIME NOT NULL,
