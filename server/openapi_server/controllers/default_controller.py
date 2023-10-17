@@ -64,6 +64,17 @@ def admin_users_list_get():  # noqa: E501
     return 'do some magic!'
 
 
+def deployment_get():  # noqa: E501
+    """deployment_get
+
+     # noqa: E501
+
+
+    :rtype: str
+    """
+    return 'do some magic!'
+
+
 def message_get(message, user_id=None, email=None):  # noqa: E501
     """message_get
 
@@ -234,7 +245,7 @@ def users_login_get():  # noqa: E501
     return 'do some magic!'
 
 
-def users_register_post(email, password, name, phone_number=None):  # noqa: E501
+def users_register_post(email, password, name, phone_number):  # noqa: E501
     """Create a new user.
 
      # noqa: E501

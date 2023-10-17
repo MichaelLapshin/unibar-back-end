@@ -19,6 +19,17 @@ paths:
       responses:
         200:
           description: Successful ping from the server.
+
+  /deployment:
+    description: States what type of deployment type this server is.
+    get:
+      responses:
+        200:
+          description: Type of deployment (e.g. development, production, testing)
+          content:
+            application/json:
+              schema:
+                type: string
   
   /message:
     description: Send a message to UniBar.
@@ -72,7 +83,7 @@ paths:
       - name: phone_number
         description: Phone number of the new user.
         in: header
-        required: false
+        required: true
         schema:
           $ref: "#/components/schemas/PhoneNumber"
     post:
@@ -100,6 +111,41 @@ paths:
                 $ref: "#/components/schemas/UserID"
         400:
           description: Failed to log in user.
+
+  /user/{user_id}/update:
+    description: Update user information.
+    parameters:
+      - name: user_id
+        description: Identifying the user.
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+      # Email should not be changed
+      - name: name
+        description: 
+        required: false
+        in: header
+        schema:
+          $ref: "#/components/schemas/Name"
+      - name: password
+        description:
+        required: false
+        in: header
+        schema:
+          $ref: "#/components/schemas/Password"
+      - name: phone_number
+        description: 
+        required: false
+        in: header
+        schema:
+          $ref: "#/components/schemas/PhoneNumber"
+      - name: etransfer_email
+        description: 
+        required: false
+        in: header
+        schema:
+          $ref: "#/components/schemas/PhoneNumber"
 
   /user/{user_id}/info:
     description: Get public information about the user.
@@ -450,6 +496,8 @@ components:
           $ref: "#/components/schemas/PhoneNumber"
         delivery_tokens:
           $ref: "#/components/schemas/DeliveryTokens"
+        etransfer_email:
+          $ref: "#/components/schemas/Email"
     OrderID:
       description: Identification of the order.
       type: string

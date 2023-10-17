@@ -17,7 +17,7 @@ class User(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, user_id=None, name=None, email=None, phone_number=None, delivery_tokens=None):  # noqa: E501
+    def __init__(self, user_id=None, name=None, email=None, phone_number=None, delivery_tokens=None, etransfer_email=None):  # noqa: E501
         """User - a model defined in OpenAPI
 
         :param user_id: The user_id of this User.  # noqa: E501
@@ -30,13 +30,16 @@ class User(Model):
         :type phone_number: str
         :param delivery_tokens: The delivery_tokens of this User.  # noqa: E501
         :type delivery_tokens: int
+        :param etransfer_email: The etransfer_email of this User.  # noqa: E501
+        :type etransfer_email: str
         """
         self.openapi_types = {
             'user_id': str,
             'name': str,
             'email': str,
             'phone_number': str,
-            'delivery_tokens': int
+            'delivery_tokens': int,
+            'etransfer_email': str
         }
 
         self.attribute_map = {
@@ -44,7 +47,8 @@ class User(Model):
             'name': 'name',
             'email': 'email',
             'phone_number': 'phone_number',
-            'delivery_tokens': 'delivery_tokens'
+            'delivery_tokens': 'delivery_tokens',
+            'etransfer_email': 'etransfer_email'
         }
 
         self._user_id = user_id
@@ -52,6 +56,7 @@ class User(Model):
         self._email = email
         self._phone_number = phone_number
         self._delivery_tokens = delivery_tokens
+        self._etransfer_email = etransfer_email
 
     @classmethod
     def from_dict(cls, dikt) -> 'User':
@@ -180,3 +185,26 @@ class User(Model):
         """
 
         self._delivery_tokens = delivery_tokens
+
+    @property
+    def etransfer_email(self):
+        """Gets the etransfer_email of this User.
+
+        Email format.  # noqa: E501
+
+        :return: The etransfer_email of this User.
+        :rtype: str
+        """
+        return self._etransfer_email
+
+    @etransfer_email.setter
+    def etransfer_email(self, etransfer_email):
+        """Sets the etransfer_email of this User.
+
+        Email format.  # noqa: E501
+
+        :param etransfer_email: The etransfer_email of this User.
+        :type etransfer_email: str
+        """
+
+        self._etransfer_email = etransfer_email

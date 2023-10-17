@@ -95,6 +95,21 @@ class TestDefaultController(BaseTestCase):
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
 
+    def test_deployment_get(self):
+        """Test case for deployment_get
+
+        
+        """
+        headers = { 
+            'Accept': 'application/json',
+        }
+        response = self.client.open(
+            '/deployment',
+            method='GET',
+            headers=headers)
+        self.assert200(response,
+                       'Response body is : ' + response.data.decode('utf-8'))
+
     def test_message_get(self):
         """Test case for message_get
 
