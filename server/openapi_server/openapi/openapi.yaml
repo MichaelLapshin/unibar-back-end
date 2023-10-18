@@ -3,13 +3,15 @@ info:
   description: API definition for interacting with the back-end system.
   title: UniBar API
   version: 1.0.0
+
 servers:
 - description: Local test server.
-  url: localhost
+  url: http://localhost
 - description: Developement server.
-  url: dev.unibar.xyz
+  url: http://dev.unibar.xyz
 - description: Production server.
-  url: prod.unibar.xyz
+  url: http://prod.unibar.xyz
+
 paths:
   /admin/messages/list:
     description: Lists all messages.
@@ -18,7 +20,7 @@ paths:
       responses:
         "200":
           content:
-            user_ids:
+            application/json:
               schema:
                 items:
                   $ref: '#/components/schemas/Message'
@@ -29,6 +31,7 @@ paths:
       security:
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /admin/orders/list:
     description: Lists all orders.
     get:
@@ -36,7 +39,7 @@ paths:
       responses:
         "200":
           content:
-            user_ids:
+            application/json:
               schema:
                 items:
                   $ref: '#/components/schemas/Order'
@@ -47,6 +50,7 @@ paths:
       security:
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /admin/reports/list:
     description: Lists all user reports.
     get:
@@ -54,7 +58,7 @@ paths:
       responses:
         "200":
           content:
-            user_ids:
+            application/json:
               schema:
                 items:
                   $ref: '#/components/schemas/Order'
@@ -65,6 +69,7 @@ paths:
       security:
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /admin/user/{user_id}:
     description: Lists specific user information (password & access token redacted).
     get:
@@ -81,13 +86,14 @@ paths:
       responses:
         "200":
           content:
-            user:
+            application/json:
               schema:
                 $ref: '#/components/schemas/User'
           description: Successfully fetched user information.
       security:
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /admin/users/list:
     description: Lists all users.
     get:
@@ -95,7 +101,7 @@ paths:
       responses:
         "200":
           content:
-            user_ids:
+            application/json:
               schema:
                 items:
                   $ref: '#/components/schemas/User'
@@ -106,6 +112,7 @@ paths:
       security:
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /deployment:
     description: States what type of deployment type this server is.
     get:
@@ -113,15 +120,16 @@ paths:
       responses:
         "200":
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
           description: Type of deployment (e.g. development, production, testing)
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /message:
     description: Send a message to UniBar.
-    get:
-      operationId: message_get
+    post:
+      operationId: message_post
       parameters:
       - description: User that wants to send a message.
         explode: false
@@ -153,6 +161,7 @@ paths:
         "400":
           description: Failed to send a message to UniBar.
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /orders/available:
     description: Lists all orders currently available to fulfill.
     get:
@@ -160,7 +169,7 @@ paths:
       responses:
         "200":
           content:
-            orders:
+            application/json:
               schema:
                 items:
                   $ref: '#/components/schemas/Order'
@@ -169,6 +178,7 @@ paths:
         "400":
           description: Failed to fetch orders available to fulfill.
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /orders/{order_id}:
     description: Fetch a specific order.
     get:
@@ -185,13 +195,14 @@ paths:
       responses:
         "200":
           content:
-            order:
+            application/json:
               schema:
                 $ref: '#/components/schemas/Order'
           description: Successfully fetched order.
         "400":
           description: Failed to fetch orders.
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /ping:
     description: Pings the server.
     get:
@@ -199,7 +210,12 @@ paths:
       responses:
         "200":
           description: Successful ping from the server.
+          content:
+            text/plain:
+              schema:
+                type: string
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /user/{user_id}/info:
     description: Get public information about the user.
     get:
@@ -216,7 +232,7 @@ paths:
       responses:
         "200":
           content:
-            orders:
+            application/json:
               schema:
                 $ref: '#/components/schemas/User'
           description: Successfully fetched user's public information.
@@ -226,6 +242,7 @@ paths:
       - UserToken: []
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /user/{user_id}/order/complete:
     description: Completes the order and performs necessary delivery-token transfer
       from food receiver to deliverer.
@@ -261,6 +278,7 @@ paths:
       - UserToken: []
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /user/{user_id}/order/deliver:
     description: Indicate which order the user intends to fulfill.
     put:
@@ -293,10 +311,11 @@ paths:
       - UserToken: []
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /user/{user_id}/order/report:
     description: Reports another user in the context of the order.
-    put:
-      operationId: user_user_id_order_report_put
+    post:
+      operationId: user_user_id_order_report_post
       parameters:
       - description: User that is reporting.
         explode: false
@@ -339,10 +358,11 @@ paths:
       - UserToken: []
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /user/{user_id}/order/request:
     description: Create a new delivery request.
-    put:
-      operationId: user_user_id_order_request_put
+    post:
+      operationId: user_user_id_order_request_post
       parameters:
       - description: Identifying the user.
         explode: false
@@ -369,6 +389,7 @@ paths:
       - UserToken: []
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /user/{user_id}/orders/delivering:
     description: Fetch the user's orders that they are claiming to be delivering.
     get:
@@ -385,7 +406,7 @@ paths:
       responses:
         "200":
           content:
-            orders:
+            application/json:
               schema:
                 items:
                   $ref: '#/components/schemas/Order'
@@ -397,6 +418,7 @@ paths:
       - UserToken: []
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /user/{user_id}/orders/requesting:
     description: Fetch the user's order that they are requesting.
     get:
@@ -413,7 +435,7 @@ paths:
       responses:
         "200":
           content:
-            orders:
+            application/json:
               schema:
                 items:
                   $ref: '#/components/schemas/Order'
@@ -425,8 +447,63 @@ paths:
       - UserToken: []
       - AdminToken: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /user/{user_id}/update:
     description: Update user information.
+    parameters:
+      - name: user_id
+        description: Identifying the user.
+        explode: false
+        required: true
+        in: path
+        schema:
+          $ref: "#/components/schemas/UserID"
+        style: simple
+      # Email should not be changed
+      - name: name
+        description: New name of the user.
+        explode: false
+        required: false
+        in: header
+        schema:
+          $ref: "#/components/schemas/Name"
+        style: simple
+      - name: password
+        description: New password of the user.
+        explode: false
+        required: false
+        in: header
+        schema:
+          $ref: "#/components/schemas/Password"
+        style: simple
+      - name: phone_number
+        description: New phone number of the user.
+        explode: false
+        required: false
+        in: header
+        schema:
+          $ref: "#/components/schemas/PhoneNumber"
+        style: simple
+      - name: etransfer_email
+        description: New e-transfer email of the user.
+        explode: false
+        required: false
+        in: header
+        schema:
+          $ref: "#/components/schemas/PhoneNumber"
+        style: simple
+    put:
+      operationId: user_update_put
+      security:
+        - UserToken: []
+        - AdminToken: []
+      responses:
+        "200":
+          description: Successfully updated user information.
+        "400":
+          description: Failed to update user information.
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /users/login:
     description: Logging in a user.
     get:
@@ -434,7 +511,7 @@ paths:
       responses:
         "200":
           content:
-            user_id:
+            application/json:
               schema:
                 $ref: '#/components/schemas/UserID'
           description: Successfully logged in.
@@ -444,6 +521,7 @@ paths:
       - UserAuth: []
       summary: Log in a user.
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
   /users/register:
     description: Registering a user.
     post:
@@ -490,6 +568,7 @@ paths:
           description: User already exists.
       summary: Create a new user.
       x-openapi-router-controller: openapi_server.controllers.default_controller
+
 components:
   schemas:
     UserID:

@@ -1,11 +1,11 @@
 import connexion
 import six
+import datetime
 
 from openapi_server.models.message import Message  # noqa: E501
 from openapi_server.models.order import Order  # noqa: E501
 from openapi_server.models.user import User  # noqa: E501
-from openapi_server import util
-
+from openapi_server import util, server_attr
 
 def admin_messages_list_get():  # noqa: E501
     """admin_messages_list_get
@@ -15,7 +15,7 @@ def admin_messages_list_get():  # noqa: E501
 
     :rtype: List[Message]
     """
-    return 'do some magic!'
+    return [], 501
 
 
 def admin_orders_list_get():  # noqa: E501
@@ -26,7 +26,7 @@ def admin_orders_list_get():  # noqa: E501
 
     :rtype: List[Order]
     """
-    return 'do some magic!'
+    return [], 501
 
 
 def admin_reports_list_get():  # noqa: E501
@@ -37,7 +37,7 @@ def admin_reports_list_get():  # noqa: E501
 
     :rtype: List[Order]
     """
-    return 'do some magic!'
+    return [], 501
 
 
 def admin_user_user_id_get(user_id):  # noqa: E501
@@ -50,7 +50,7 @@ def admin_user_user_id_get(user_id):  # noqa: E501
 
     :rtype: User
     """
-    return 'do some magic!'
+    return User(), 501
 
 
 def admin_users_list_get():  # noqa: E501
@@ -61,8 +61,7 @@ def admin_users_list_get():  # noqa: E501
 
     :rtype: List[User]
     """
-    return 'do some magic!'
-
+    return [], 501
 
 def deployment_get():  # noqa: E501
     """deployment_get
@@ -72,11 +71,12 @@ def deployment_get():  # noqa: E501
 
     :rtype: str
     """
-    return 'do some magic!'
+    return f"name: {server_attr.deployment_name}\n" + \
+        f"uptime: {datetime.datetime.now() - server_attr.start_time}", 200
 
 
-def message_get(message, user_id=None, email=None):  # noqa: E501
-    """message_get
+def message_post(message, user_id=None, email=None):  # noqa: E501
+    """message_port
 
      # noqa: E501
 
@@ -91,7 +91,7 @@ def message_get(message, user_id=None, email=None):  # noqa: E501
     """
     if connexion.request.is_json:
         email =  str.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    return 'do some magic!', 501
 
 
 def orders_available_get():  # noqa: E501
@@ -102,7 +102,7 @@ def orders_available_get():  # noqa: E501
 
     :rtype: List[Order]
     """
-    return 'do some magic!'
+    return [], 501
 
 
 def orders_order_id_get(order_id):  # noqa: E501
@@ -115,8 +115,7 @@ def orders_order_id_get(order_id):  # noqa: E501
 
     :rtype: Order
     """
-    return 'do some magic!'
-
+    return Order(), 501
 
 def ping_get():  # noqa: E501
     """ping_get
@@ -126,7 +125,7 @@ def ping_get():  # noqa: E501
 
     :rtype: None
     """
-    return 'do some magic!'
+    return "ping", 200
 
 
 def user_user_id_info_get(user_id):  # noqa: E501
@@ -139,7 +138,7 @@ def user_user_id_info_get(user_id):  # noqa: E501
 
     :rtype: User
     """
-    return 'do some magic!'
+    return 'do some magic!', 501
 
 
 def user_user_id_order_complete_put(user_id, order_id):  # noqa: E501
@@ -154,7 +153,7 @@ def user_user_id_order_complete_put(user_id, order_id):  # noqa: E501
 
     :rtype: None
     """
-    return 'do some magic!'
+    return 'do some magic!', 501
 
 
 def user_user_id_order_deliver_put(user_id, order_id):  # noqa: E501
@@ -169,11 +168,11 @@ def user_user_id_order_deliver_put(user_id, order_id):  # noqa: E501
 
     :rtype: None
     """
-    return 'do some magic!'
+    return 'do some magic!', 501
 
 
-def user_user_id_order_report_put(user_id, reported_id, order_id, message):  # noqa: E501
-    """user_user_id_order_report_put
+def user_user_id_order_report_post(user_id, reported_id, order_id, message):  # noqa: E501
+    """user_user_id_order_report_post
 
      # noqa: E501
 
@@ -188,11 +187,11 @@ def user_user_id_order_report_put(user_id, reported_id, order_id, message):  # n
 
     :rtype: None
     """
-    return 'do some magic!'
+    return 'do some magic!', 501
 
 
-def user_user_id_order_request_put(user_id, order):  # noqa: E501
-    """user_user_id_order_request_put
+def user_user_id_order_request_post(user_id, order):  # noqa: E501
+    """user_user_id_order_request_post
 
      # noqa: E501
 
@@ -205,7 +204,7 @@ def user_user_id_order_request_put(user_id, order):  # noqa: E501
     """
     if connexion.request.is_json:
         order =  Order.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    return 'do some magic!', 501
 
 
 def user_user_id_orders_delivering_get(user_id):  # noqa: E501
@@ -218,7 +217,7 @@ def user_user_id_orders_delivering_get(user_id):  # noqa: E501
 
     :rtype: List[Order]
     """
-    return 'do some magic!'
+    return 'do some magic!', 501
 
 
 def user_user_id_orders_requesting_get(user_id):  # noqa: E501
@@ -231,8 +230,18 @@ def user_user_id_orders_requesting_get(user_id):  # noqa: E501
 
     :rtype: List[Order]
     """
-    return 'do some magic!'
+    return 'do some magic!', 501
 
+
+def user_update_put(user_id, name=None, password=None, phone_numer=None, etransfer_email=None):
+    """Update user information.
+
+     # noqa: E501
+
+
+    :rtype: str
+    """
+    return 'do some magic!', 501 
 
 def users_login_get():  # noqa: E501
     """Log in a user.
@@ -242,7 +251,7 @@ def users_login_get():  # noqa: E501
 
     :rtype: str
     """
-    return 'do some magic!'
+    return 'do some magic!', 501
 
 
 def users_register_post(email, password, name, phone_number):  # noqa: E501
@@ -263,4 +272,4 @@ def users_register_post(email, password, name, phone_number):  # noqa: E501
     """
     if connexion.request.is_json:
         email =  str.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    return 'do some magic!', 501
