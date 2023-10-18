@@ -13,7 +13,7 @@ assert(deployment_name)
 rds_hostname = os.environ.get("UNIBAR_RDS_HOSTNAME")
 rds_username = os.environ.get("UNIBAR_RDS_USERNAME")
 rds_password = os.environ.get("UNIBAR_RDS_PASSWORD")
-rds_port = os.environ.get("UNIBAR_RDS_PORT")
+rds_port = int(os.environ.get("UNIBAR_RDS_PORT"))
 rds_database = os.environ.get("UNIBAR_RDS_DATABASE")
 
 print("=== RDS Config ===")

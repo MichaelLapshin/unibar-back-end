@@ -11,7 +11,7 @@ def main():
     # Save the PID into a file
     print("PID:", os.getpid())
     with open('latest_deployment_pid.txt', 'w') as f:
-        f.write(os.getpid())
+        f.write(str(os.getpid()))
 
     # Launch the server
     server_attr.start_time = datetime.datetime.now()
