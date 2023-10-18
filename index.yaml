@@ -5,11 +5,11 @@ info:
   description: API definition for interacting with the back-end system.
 
 servers:
-  - url: localhost
+  - url: http://localhost
     description: Local test server.
-  - url: dev.unibar.xyz
+  - url: http://dev.unibar.xyz
     description: Developement server.
-  - url: prod.unibar.xyz
+  - url: http://prod.unibar.xyz
     description: Production server.
 
 paths:
@@ -19,6 +19,10 @@ paths:
       responses:
         200:
           description: Successful ping from the server.
+          content:
+            text/plain:
+              schema:
+                type: string
 
   /deployment:
     description: States what type of deployment type this server is.
@@ -27,7 +31,7 @@ paths:
         200:
           description: Type of deployment (e.g. development, production, testing)
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
   
@@ -106,7 +110,7 @@ paths:
         200:
           description: Successfully logged in.
           content:
-            user_id:
+            application/json:
               schema:
                 $ref: "#/components/schemas/UserID"
         400:
@@ -123,29 +127,38 @@ paths:
           $ref: "#/components/schemas/UserID"
       # Email should not be changed
       - name: name
-        description: 
+        description: New name of the user.
         required: false
         in: header
         schema:
           $ref: "#/components/schemas/Name"
       - name: password
-        description:
+        description: New password of the user.
         required: false
         in: header
         schema:
           $ref: "#/components/schemas/Password"
       - name: phone_number
-        description: 
+        description: New phone number of the user.
         required: false
         in: header
         schema:
           $ref: "#/components/schemas/PhoneNumber"
       - name: etransfer_email
-        description: 
+        description: New e-transfer email of the user.
         required: false
         in: header
         schema:
           $ref: "#/components/schemas/PhoneNumber"
+    put:
+      security:
+        - UserToken: []
+        - AdminToken: []
+      responses:
+        200:
+          description: Successfully updated user information.
+        400:
+          description: Failed to update user information.
 
   /user/{user_id}/info:
     description: Get public information about the user.
@@ -164,7 +177,7 @@ paths:
         200:
           description: Successfully fetched user's public information.
           content:
-            orders:
+            application/json:
               schema:
                 $ref: "#/components/schemas/User"
         400:
@@ -187,7 +200,7 @@ paths:
         200:
           description: Succesfully fetched user's claimed orders to be delivering.
           content:
-            orders:
+            application/json:
               schema:
                 type: array
                 items:
@@ -212,7 +225,7 @@ paths:
         200:
           description: Succesfully fetched user's active orders.
           content:
-            orders:
+            application/json:
               schema:
                 type: array
                 items:
@@ -235,7 +248,7 @@ paths:
         in: header
         schema:
           $ref: "#/components/schemas/Order"
-    put:
+    post:
       security:
         - UserToken: []
         - AdminToken: []
@@ -299,7 +312,7 @@ paths:
         in: header
         schema:
           $ref: "#/components/schemas/UserID"
-    put:
+    post:
       security:
         - UserToken: []
         - AdminToken: []
@@ -341,7 +354,7 @@ paths:
         200:
           description: Successfully fetched orders available to fulfill.
           content:
-            orders:
+            application/json:
               schema:
                 type: array
                 items:
@@ -363,7 +376,7 @@ paths:
         200:
           description: Successfully fetched order.
           content:
-            order:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Order"
         400:
@@ -378,7 +391,7 @@ paths:
         200:
           description: Succesfully fetched all users.
           content:
-            user_ids:
+            application/json:
               schema:
                 type: array
                 items:
@@ -402,7 +415,7 @@ paths:
         200:
           description: Successfully fetched user information.
           content:
-            user:
+            application/json:
               schema:
                 $ref: "#/components/schemas/User"
 
@@ -415,7 +428,7 @@ paths:
         200:
           description: Succesfully fetched all orders.
           content:
-            user_ids:
+            application/json:
               schema:
                 type: array
                 items:
@@ -432,7 +445,7 @@ paths:
         200:
           description: Succesfully fetched all reports.
           content:
-            user_ids:
+            application/json:
               schema:
                 type: array
                 items:
@@ -449,7 +462,7 @@ paths:
         200:
           description: Succesfully fetched all messages.
           content:
-            user_ids:
+            application/json:
               schema:
                 type: array
                 items:

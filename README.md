@@ -1,5 +1,18 @@
 # UniBar Back-End
 
+## Running the server
+1. Install the requirements: `pip3 install --no-cache-dir -r server/requirements.txt`
+2. Configure the following environment variables:
+```
+UNIBAR_DEPLOYMENT_NAME = <deployment_name>
+UNIBAR_RDS_HOSTNAME = <rds_server_hostname>
+UNIBAR_RDS_USERNAME = <rds_server_username>
+UNIBAR_RDS_PASSWORD = <rds_server_password>
+UNIBAR_RDS_PORT = <rds_server_port>
+UNIBAR_RDS_DATABASE = <rds_server_database>
+```
+3. Start the server: `python3 -m openapi_server` from the server directory
+
 ## Creating a database and tables
 1. Fetch the UniBar back-end repository.
 2. Connect to the MySQL server (see steps below)
