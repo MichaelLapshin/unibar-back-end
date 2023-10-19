@@ -1,13 +1,17 @@
 import connexion
 import six
 import datetime
+import secrets
+from flask import session, make_response
 
 from openapi_server.models.message import Message  # noqa: E501
 from openapi_server.models.order import Order  # noqa: E501
 from openapi_server.models.user import User  # noqa: E501
-from openapi_server import util, server_attr
+from openapi_server import util, server_attr, constants
+from openapi_server.database.db_rds import conn
+from openapi_server.controllers.security_controller_ import AuthInstance
 
-def admin_messages_list_get():  # noqa: E501
+def admin_messages_list_get(user):  # noqa: E501
     """admin_messages_list_get
 
      # noqa: E501
@@ -15,10 +19,13 @@ def admin_messages_list_get():  # noqa: E501
 
     :rtype: List[Message]
     """
+    # conn.execute("SELECT () FROM ")
+    # conn.commit()
+
     return [], 501
 
 
-def admin_orders_list_get():  # noqa: E501
+def admin_orders_list_get(user):  # noqa: E501
     """admin_orders_list_get
 
      # noqa: E501
@@ -29,7 +36,7 @@ def admin_orders_list_get():  # noqa: E501
     return [], 501
 
 
-def admin_reports_list_get():  # noqa: E501
+def admin_reports_list_get(user):  # noqa: E501
     """admin_reports_list_get
 
      # noqa: E501
@@ -40,7 +47,7 @@ def admin_reports_list_get():  # noqa: E501
     return [], 501
 
 
-def admin_user_user_id_get(user_id):  # noqa: E501
+def admin_user_user_id_get(user, user_id):  # noqa: E501
     """admin_user_user_id_get
 
      # noqa: E501
@@ -53,7 +60,7 @@ def admin_user_user_id_get(user_id):  # noqa: E501
     return User(), 501
 
 
-def admin_users_list_get():  # noqa: E501
+def admin_users_list_get(user):  # noqa: E501
     """admin_users_list_get
 
      # noqa: E501
@@ -61,7 +68,22 @@ def admin_users_list_get():  # noqa: E501
 
     :rtype: List[User]
     """
-    return [], 501
+    results = conn.cusor().execute(
+        "SELECT (user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email) FROM Users"
+    )
+
+    users = [
+        User(
+            user_id=res[0],
+            name=res[1],
+            email=res[2],
+            registered_time=res[3],
+            delivery_tokens=res[4],
+            phone_number=res[5],
+            etransfer_email=res[6]
+        ) for res in results
+    ]
+    return users, 200
 
 def deployment_get():  # noqa: E501
     """deployment_get
@@ -90,8 +112,11 @@ def message_post(message, user_id=None, email=None):  # noqa: E501
     :rtype: None
     """
     if connexion.request.is_json:
-        email =  str.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!', 501
+        email = str.from_dict(connexion.request.get_json())  # noqa: E501
+
+    # with 
+
+    return "message", 501
 
 
 def orders_available_get():  # noqa: E501
@@ -102,7 +127,13 @@ def orders_available_get():  # noqa: E501
 
     :rtype: List[Order]
     """
-    return [], 501
+    with conn.cursor() as cursor:
+        cursor.execute(
+            "SELECT (order_id, orderer_id, deliverer_id, creation_time, deadline_time, claimed_time, delivered_time, order, source, destination, payment_method) WHERE ..."
+        )
+        results = cursor.fetchall()
+        available_orders = [Order.from_dict(res) for res in results]
+        return available_orders, 501
 
 
 def orders_order_id_get(order_id):  # noqa: E501
@@ -115,7 +146,15 @@ def orders_order_id_get(order_id):  # noqa: E501
 
     :rtype: Order
     """
-    return Order(), 501
+
+    with conn.cusor() as cursor:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT (order_id, orderer_id, deliverer_id, creation_time, deadline_time, claimed_time, delivered_time, order, source, destination, payment_method) WHERE order_id = ?",
+            [order_id]
+        )
+        res = cursor.fetchone()
+        return Order.from_dict(res), 200
 
 def ping_get():  # noqa: E501
     """ping_get
@@ -138,8 +177,11 @@ def user_user_id_info_get(user_id):  # noqa: E501
 
     :rtype: User
     """
-    return 'do some magic!', 501
-
+    user = conn.cursor().execute(
+        "SELECT (user_id, name, email, phone_number, delivery_tokens, etransfer_email) FROM Users WHERE user_id = ?",
+        [user_id]
+    )
+    return user, 501
 
 def user_user_id_order_complete_put(user_id, order_id):  # noqa: E501
     """user_user_id_order_complete_put
@@ -156,7 +198,7 @@ def user_user_id_order_complete_put(user_id, order_id):  # noqa: E501
     return 'do some magic!', 501
 
 
-def user_user_id_order_deliver_put(user_id, order_id):  # noqa: E501
+def user_user_id_order_deliver_put(user, user_id, order_id):  # noqa: E501
     """user_user_id_order_deliver_put
 
      # noqa: E501
@@ -171,7 +213,7 @@ def user_user_id_order_deliver_put(user_id, order_id):  # noqa: E501
     return 'do some magic!', 501
 
 
-def user_user_id_order_report_post(user_id, reported_id, order_id, message):  # noqa: E501
+def user_user_id_order_report_post(user, user_id, reported_id, order_id, message):  # noqa: E501
     """user_user_id_order_report_post
 
      # noqa: E501
@@ -190,7 +232,7 @@ def user_user_id_order_report_post(user_id, reported_id, order_id, message):  # 
     return 'do some magic!', 501
 
 
-def user_user_id_order_request_post(user_id, order):  # noqa: E501
+def user_user_id_order_request_post(user, user_id, order):  # noqa: E501
     """user_user_id_order_request_post
 
      # noqa: E501
@@ -203,11 +245,15 @@ def user_user_id_order_request_post(user_id, order):  # noqa: E501
     :rtype: None
     """
     if connexion.request.is_json:
-        order =  Order.from_dict(connexion.request.get_json())  # noqa: E501
+        order = Order.from_dict(connexion.request.get_json())  # noqa: E501
+
+    # Check that user does not have more 
+
+
     return 'do some magic!', 501
 
 
-def user_user_id_orders_delivering_get(user_id):  # noqa: E501
+def user_user_id_orders_delivering_get(user, user_id):  # noqa: E501
     """user_user_id_orders_delivering_get
 
      # noqa: E501
@@ -220,7 +266,7 @@ def user_user_id_orders_delivering_get(user_id):  # noqa: E501
     return 'do some magic!', 501
 
 
-def user_user_id_orders_requesting_get(user_id):  # noqa: E501
+def user_user_id_orders_requesting_get(user, user_id):  # noqa: E501
     """user_user_id_orders_requesting_get
 
      # noqa: E501
@@ -233,7 +279,7 @@ def user_user_id_orders_requesting_get(user_id):  # noqa: E501
     return 'do some magic!', 501
 
 
-def user_update_put(user_id, name=None, password=None, phone_numer=None, etransfer_email=None):
+def user_update_put(user, user_id, name=None, password=None, phone_number=None, etransfer_email=None):
     """Update user information.
 
      # noqa: E501
@@ -241,20 +287,41 @@ def user_update_put(user_id, name=None, password=None, phone_numer=None, etransf
 
     :rtype: str
     """
-    return 'do some magic!', 501 
 
-def users_login_get():  # noqa: E501
-    """Log in a user.
+    if len(password) < constants.MIN_PASSWORD_LENGTH:
+        raise Exception("new password is too short")
+
+    with conn.cursor() as cursor:
+        cursor.execute(
+            "UPDATE Users SET name = COAL WHERE user_id = ?",
+            [name, password, phone_number, etransfer_email, AuthInstance(user).id]
+        )
+        cursor.commit()
+
+        return "Successfully updated the user.", 200 
+
+def users_login_get(user):  # noqa: E501
+    """Log in a user. Set cookie auth token.
 
      # noqa: E501
 
 
     :rtype: str
     """
-    return 'do some magic!', 501
+    
+    with conn.cursor() as cursor:
+        # Create and map auth token to the user in the database
+        new_auth_token = secrets.token_hex(constants.AUTH_TOKEN_LENGTH)
+        cursor.execute("UPDATE Users SET auth_token = ? WHERE user_id = ?", [new_auth_token, user.id])
+        cursor.commit()
+
+        response = make_response("Login succesful")
+        response.set_cookie("user_token", new_auth_token)
+
+    return "Successfully logged in.", 200
 
 
-def users_register_post(email, password, name, phone_number):  # noqa: E501
+def users_register_post(user, email, password, name, phone_number):  # noqa: E501
     """Create a new user.
 
      # noqa: E501
@@ -270,6 +337,18 @@ def users_register_post(email, password, name, phone_number):  # noqa: E501
 
     :rtype: None
     """
+    if len(password) < constants.MIN_PASSWORD_LENGTH:
+        raise Exception("password for new user is too short")
+
     if connexion.request.is_json:
         email =  str.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!', 501
+
+    user_id=util.generate_uuid(),   
+
+    # Store the user in the database
+    conn.cusor().execute(
+        "INSERT INTO Users (user_id, password, name, email, registered_time, delivery_tokens, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?)", 
+        [user_id, password, name, email, datetime.datetime.now(), constants.NEW_USER_DELIVERY_TOKENS, phone_number]
+    )
+
+    return f"Registered new user {user_id}", 200

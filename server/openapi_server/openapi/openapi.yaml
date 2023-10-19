@@ -518,8 +518,8 @@ paths:
         "400":
           description: Failed to log in user.
       security:
-      - UserAuth: []
-      summary: Log in a user.
+      - UserLogin: []
+      summary: Log in a user. Set cookie auth token.
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /users/register:
@@ -612,6 +612,9 @@ components:
           description: Phone number format.
           pattern: ^\d{10}$
           type: string
+        registered_time:
+          type: string
+          format: time
         delivery_tokens:
           description: Delivery token count.
           format: int32
@@ -669,6 +672,7 @@ components:
           - claimed
           - delivered
           - cancelled
+          - expired
           type: string
       type: object
     Message:
@@ -718,10 +722,10 @@ components:
           type: string
       type: object
   securitySchemes:
-    UserAuth:
+    UserLogin:
       scheme: basic
       type: http
-      x-basicInfoFunc: openapi_server.controllers.security_controller_.info_from_UserAuth
+      x-basicInfoFunc: openapi_server.controllers.security_controller_.info_from_UserLogin
     UserToken:
       in: cookie
       name: user_token

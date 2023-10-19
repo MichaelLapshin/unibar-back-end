@@ -3,23 +3,26 @@ CREATE DATABASE `UniBar`;
 CREATE TABLE `UniBar`.`Users` (
     `user_id` CHAR(36) NOT NULL,
     `password` VARCHAR(32) NOT NULL,
+    `auth_token` CHAR(32),
     `name` VARCHAR(32) NOT NULL,
     `email` VARCHAR(32) NOT NULL,
     `registered_time` DATETIME NOT NULL,
     `delivery_tokens` INT NOT NULL,
-    `phone_number` INT,
+    `phone_number` INT NOT NULL,
+    `etransfer_email` VARCHAR(32),
 
     PRIMARY KEY (`user_id`)
+    UNIQUE (`auth_token`)
 );
 
 CREATE TABLE `UniBar`.`Admins` (
     `admin_id` CHAR(36) NOT NULL,
     `name` VARCHAR(32) NOT NULL,
-    `admin_token` VARCHAR(32) NOT NULL,
+    `auth_token` VARCHAR(32) NOT NULL,
     `registered_time` DATETIME NOT NULL,
 
     PRIMARY KEY (`admin_id`),
-    UNIQUE (`admin_token`)
+    UNIQUE (`auth_token`)
 );
 
 CREATE TABLE `UniBar`.`Orders` (
@@ -30,13 +33,12 @@ CREATE TABLE `UniBar`.`Orders` (
     `creation_time` DATETIME NOT NULL,
     `deadline_time` DATETIME NOT NULL,
     `claimed_time` DATETIME,
-    `fulfilled_time` DATETIME,
+    `delivered_time` DATETIME,
 
     `order` varchar(250) NOT NULL,
     `source` varchar(250) NOT NULL,
     `destination` varchar(250) NOT NULL,
     `payment_method` ENUM('cash', 'etransfer') NOT NULL,
-    `status` ENUM('available', 'claimed', 'delivered', 'cancelled') NOT NULL,
 
     PRIMARY KEY (`order_id`),
     FOREIGN KEY (`orderer_id`) REFERENCES `UniBar`.`Users`(`user_id`),

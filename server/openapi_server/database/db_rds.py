@@ -10,7 +10,8 @@ def connect():
             host=server_attr.rds_hostname,
             port=server_attr.rds_port,
             user=server_attr.rds_username,
-            password=server_attr.rds_password
+            password=server_attr.rds_password,
+            cursorclass=pymysql.cursors.DictCursor
         )
 
         if conn is not None:
@@ -23,12 +24,6 @@ def connect():
     except pymysql.MySQLError as e:
         print(f"Error: {e}")
         conn.close()
-
-    return conn
-
-def cursor():
-    # Fetch cursor from the database
-    return conn.cursor()
 
 def close():
     # Close the database connection

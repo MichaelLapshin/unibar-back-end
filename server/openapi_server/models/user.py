@@ -17,7 +17,7 @@ class User(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, user_id=None, name=None, email=None, phone_number=None, delivery_tokens=None, etransfer_email=None):  # noqa: E501
+    def __init__(self, user_id=None, name=None, email=None, phone_number=None, registered_time=None, delivery_tokens=None, etransfer_email=None):  # noqa: E501
         """User - a model defined in OpenAPI
 
         :param user_id: The user_id of this User.  # noqa: E501
@@ -38,6 +38,7 @@ class User(Model):
             'name': str,
             'email': str,
             'phone_number': str,
+            'registered_time', str,
             'delivery_tokens': int,
             'etransfer_email': str
         }
@@ -47,6 +48,7 @@ class User(Model):
             'name': 'name',
             'email': 'email',
             'phone_number': 'phone_number',
+            'registered_time': 'registered_time',
             'delivery_tokens': 'delivery_tokens',
             'etransfer_email': 'etransfer_email'
         }
@@ -55,6 +57,7 @@ class User(Model):
         self._name = name
         self._email = email
         self._phone_number = phone_number
+        self._registered_time = registered_time
         self._delivery_tokens = delivery_tokens
         self._etransfer_email = etransfer_email
 
@@ -162,6 +165,27 @@ class User(Model):
             raise ValueError("Invalid value for `phone_number`, must be a follow pattern or equal to `/^\d{10}$/`")  # noqa: E501
 
         self._phone_number = phone_number
+
+    @property
+    def registered_time(self):
+        """Gets the registered_time of this User.
+
+
+        :return: The registered_time of this User.
+        :rtype: str
+        """
+        return self._registered_time
+
+    @registered_time.setter
+    def registered_time(self, registered_time):
+        """Sets the registered_time of this User.
+
+
+        :param registered_time: The registered_time of this User.
+        :type registered_time: str
+        """
+
+        self._registered_time = registered_time
 
     @property
     def delivery_tokens(self):
