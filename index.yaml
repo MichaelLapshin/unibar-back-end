@@ -103,9 +103,9 @@ paths:
   /users/login:
     description: Logging in a user.
     get:
-      summary: Log in a user.
+      summary: Log in a user. Set cookie auth token.
       security:
-        - UserAuth: []
+        - UserLogin: []
       responses:
         200:
           description: Successfully logged in.
@@ -152,7 +152,7 @@ paths:
           $ref: "#/components/schemas/PhoneNumber"
     put:
       security:
-        - UserToken: []
+        - UserAuth: []
         - AdminToken: []
       responses:
         200:
@@ -171,7 +171,7 @@ paths:
           $ref: "#/components/schemas/UserID"
     get:
       security:
-        - UserToken: []
+        - UserAuth: []
         - AdminToken: []
       responses:
         200:
@@ -194,7 +194,7 @@ paths:
           $ref: "#/components/schemas/UserID"
     get:
       security:
-        - UserToken: []
+        - UserAuth: []
         - AdminToken: []
       responses:
         200:
@@ -219,7 +219,7 @@ paths:
           $ref: "#/components/schemas/UserID"
     get:
       security:
-        - UserToken: []
+        - UserAuth: []
         - AdminToken: []
       responses:
         200:
@@ -250,7 +250,7 @@ paths:
           $ref: "#/components/schemas/Order"
     post:
       security:
-        - UserToken: []
+        - UserAuth: []
         - AdminToken: []
       responses:
         200:
@@ -275,7 +275,7 @@ paths:
           $ref: "#/components/schemas/OrderID"
     put: 
       security:
-        - UserToken: []
+        - UserAuth: []
         - AdminToken: []
       responses:
         200:
@@ -314,7 +314,7 @@ paths:
           $ref: "#/components/schemas/UserID"
     post:
       security:
-        - UserToken: []
+        - UserAuth: []
         - AdminToken: []
       responses:
         200:
@@ -339,7 +339,7 @@ paths:
           $ref: "#/components/schemas/OrderID"
     put:
       security:
-        - UserToken: []
+        - UserAuth: []
         - AdminToken: []
       responses:
         200:
@@ -507,6 +507,9 @@ components:
           $ref: "#/components/schemas/Email"
         phone_number:
           $ref: "#/components/schemas/PhoneNumber"
+        registered_time:
+          type: string
+          format: time
         delivery_tokens:
           $ref: "#/components/schemas/DeliveryTokens"
         etransfer_email:
@@ -555,6 +558,7 @@ components:
             - claimed
             - delivered
             - cancelled
+            - expired
     Message:
       description: A user message to UniBar.
       type: object
@@ -593,12 +597,13 @@ components:
           type: string
   
   securitySchemes:
-    UserAuth:
+    UserLogin:
       type: http
       scheme: basic
-    UserToken:
-      type: apiKey
+    UserAuth:
+      type: http
       in: cookie
+      scheme: basic
       name: user_token
     AdminToken:
       type: apiKey
