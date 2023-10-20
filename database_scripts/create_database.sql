@@ -11,7 +11,7 @@ CREATE TABLE `UniBar`.`Users` (
     `phone_number` INT NOT NULL,
     `etransfer_email` VARCHAR(32),
 
-    PRIMARY KEY (`user_id`)
+    PRIMARY KEY (`user_id`),
     UNIQUE (`auth_token`)
 );
 
