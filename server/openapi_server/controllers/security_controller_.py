@@ -11,7 +11,7 @@ from openapi_server import constants
 class AuthInstance(object):
     def __init__(self, type, id) -> None:
         # Sanity check that everything's good
-        if type != constants.AUTH_TYPE_ADMIN or type != constants.AUTH_TYPE_USER:
+        if type != constants.AUTH_TYPE_ADMIN and type != constants.AUTH_TYPE_USER:
             raise Exception("Provided auth type for object is invalid.")
         if len(id) != constants.UUID_LENGTH:
             raise Exception("Provided id is of not correct length.")
@@ -25,7 +25,7 @@ class AuthInstance(object):
         return self._id
 
 # Security functions
-def info_from_AdminToken(api_key, required_scopes):
+def info_from_AdminAuth(api_key, required_scopes):
     """
     Check and retrieve authentication information from api_key.
     Returned value will be passed in 'token_info' parameter of your operation function, if there is one.
@@ -54,37 +54,6 @@ def info_from_AdminToken(api_key, required_scopes):
         admin_id = row["admin_id"]
         logging.info(f"Matched admin auth token against admin_id '{admin_id}'")
         return {'sub': AuthInstance(type=constants.AUTH_TYPE_ADMIN, id=admin_id)}
-
-def info_from_UserLogin(username, password, required_scopes):
-    """
-    Check and retrieve authentication information from basic auth.
-    Returned value will be passed in 'token_info' parameter of your operation function, if there is one.
-    'sub' or 'uid' will be set in 'user' parameter of your operation function, if there is one.
-
-    :param username login provided by Authorization header
-    :type username: str
-    :param password password provided by Authorization header
-    :type password: str
-    :param required_scopes Always None. Used for other authentication method
-    :type required_scopes: None
-    :return: Information attached to user or None if credentials are invalid or does not allow access to called API
-    :rtype: dict | None
-    """
-    logging.info(f"Logged in user with username '{username}'")
-    
-    logging.info("Attempting to log in an admin.")
-    
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT (user_id, password) FROM Admins WHERE username = ?", [username])
-        row = cursor.fetchone()
-        if not row:
-            raise Exception("user with the provided username does not exist")
-        if row["password"] != password:
-            raise Exception("incorrect user credentials")
-        
-        user_id = row["user_id"]
-        logging.info(f"Matched admin api token against user_id '{user_id}'")
-        return {'sub': AuthInstance(type=constants.AUTH_TYPE_USER, id=user_id)}
 
 def info_from_UserAuth(api_key, required_scopes):
     """

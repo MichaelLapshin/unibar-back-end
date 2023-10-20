@@ -1,3 +1,8 @@
+# Testing code
+tester/
+testing.yaml
+sanity_check
+
 # IDE rubble
 .DS_Store
 

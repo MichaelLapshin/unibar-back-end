@@ -29,7 +29,7 @@ paths:
         "400":
           description: Failed to fetch all messages.
       security:
-      - AdminToken: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /admin/orders/list:
@@ -48,7 +48,7 @@ paths:
         "400":
           description: Failed to fetch all orders.
       security:
-      - AdminToken: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /admin/reports/list:
@@ -67,7 +67,7 @@ paths:
         "400":
           description: Failed to fetch all orders.
       security:
-      - AdminToken: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /admin/user/{user_id}:
@@ -91,7 +91,7 @@ paths:
                 $ref: '#/components/schemas/User'
           description: Successfully fetched user information.
       security:
-      - AdminToken: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /admin/users/list:
@@ -110,7 +110,7 @@ paths:
         "400":
           description: Failed to fetch all users.
       security:
-      - AdminToken: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /deployment:
@@ -239,8 +239,8 @@ paths:
         "400":
           description: Failed to fetch user's public information.
       security:
-      - UserToken: []
-      - AdminToken: []
+      - UserAuth: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /user/{user_id}/order/complete:
@@ -275,8 +275,8 @@ paths:
           description: Failed to complete the order and transfer the delivery-token
             from the food receiver to the deliverer.
       security:
-      - UserToken: []
-      - AdminToken: []
+      - UserAuth: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /user/{user_id}/order/deliver:
@@ -308,8 +308,8 @@ paths:
         "409":
           description: Order is currently being fulfilled by another user.
       security:
-      - UserToken: []
-      - AdminToken: []
+      - UserAuth: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /user/{user_id}/order/report:
@@ -355,8 +355,8 @@ paths:
         "400":
           description: Failed to report the user.
       security:
-      - UserToken: []
-      - AdminToken: []
+      - UserAuth: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /user/{user_id}/order/request:
@@ -386,8 +386,8 @@ paths:
         "400":
           description: Failed to create a delivery request.
       security:
-      - UserToken: []
-      - AdminToken: []
+      - UserAuth: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /user/{user_id}/orders/delivering:
@@ -415,8 +415,8 @@ paths:
         "400":
           description: Failed to fetch user's claimed orders to be delivering.
       security:
-      - UserToken: []
-      - AdminToken: []
+      - UserAuth: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /user/{user_id}/orders/requesting:
@@ -444,8 +444,8 @@ paths:
         "400":
           description: Failed to fetch user's active delivery requests.
       security:
-      - UserToken: []
-      - AdminToken: []
+      - UserAuth: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
   /user/{user_id}/update:
@@ -495,8 +495,8 @@ paths:
     put:
       operationId: user_update_put
       security:
-        - UserToken: []
-        - AdminToken: []
+        - UserAuth: []
+        - AdminAuth: []
       responses:
         "200":
           description: Successfully updated user information.
@@ -506,8 +506,8 @@ paths:
 
   /users/login:
     description: Logging in a user.
-    get:
-      operationId: users_login_get
+    post:
+      operationId: users_login_post
       responses:
         "200":
           content:
@@ -517,8 +517,6 @@ paths:
           description: Successfully logged in.
         "400":
           description: Failed to log in user.
-      security:
-      - UserLogin: []
       summary: Log in a user. Set cookie auth token.
       x-openapi-router-controller: openapi_server.controllers.default_controller
 
@@ -722,17 +720,13 @@ components:
           type: string
       type: object
   securitySchemes:
-    UserLogin:
-      scheme: basic
-      type: http
-      x-basicInfoFunc: openapi_server.controllers.security_controller_.info_from_UserLogin
-    UserToken:
+    UserAuth:
       in: cookie
       name: user_token
       type: apiKey
-      x-apikeyInfoFunc: openapi_server.controllers.security_controller_.info_from_UserToken
-    AdminToken:
+      x-apikeyInfoFunc: openapi_server.controllers.security_controller_.info_from_UserAuth
+    AdminAuth:
       in: header
       name: admin_token
       type: apiKey
-      x-apikeyInfoFunc: openapi_server.controllers.security_controller_.info_from_AdminToken
+      x-apikeyInfoFunc: openapi_server.controllers.security_controller_.info_from_AdminAuth

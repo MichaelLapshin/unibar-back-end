@@ -2,6 +2,7 @@ import connexion
 import six
 import datetime
 import secrets
+import logging
 from flask import session, make_response
 
 from openapi_server.models.message import Message  # noqa: E501
@@ -10,6 +11,31 @@ from openapi_server.models.user import User  # noqa: E501
 from openapi_server import util, server_attr, constants
 from openapi_server.database.db_rds import conn
 from openapi_server.controllers.security_controller_ import AuthInstance
+
+def admin_login_post(auth_token):  # noqa: E501
+    """Log in an admin. Set cookie auth token.
+
+     # noqa: E501
+
+    :rtype: str
+    """
+
+    logging.info(f"Attempting to log in admin.")
+
+    # Find user associated with the email
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT (admin_id, name) FROM Admins WHERE auth_token = ?", [auth_token])
+        row = cursor.fetchone()
+        if not row:
+            raise Exception("user with the provided username does not exist")
+        admin_id = row["admin_id"]
+        name = row["name"]
+
+        # Set cookie and return the response
+        logging.info(f"Succesfully logged in admin '{name}' ({admin_id}).")
+        response = make_response(f"Succesfully logged in admin '{name}'.")
+        response.set_cookie("admin_token", auth_token)
+        return response, 200
 
 def admin_messages_list_get(user):  # noqa: E501
     """admin_messages_list_get
@@ -45,20 +71,6 @@ def admin_reports_list_get(user):  # noqa: E501
     :rtype: List[Order]
     """
     return [], 501
-
-
-def admin_user_user_id_get(user, user_id):  # noqa: E501
-    """admin_user_user_id_get
-
-     # noqa: E501
-
-    :param user_id: User of which to fetch information about.
-    :type user_id: 
-
-    :rtype: User
-    """
-    return User(), 501
-
 
 def admin_users_list_get(user):  # noqa: E501
     """admin_users_list_get
@@ -167,8 +179,8 @@ def ping_get():  # noqa: E501
     return "ping", 200
 
 
-def user_user_id_info_get(user_id):  # noqa: E501
-    """user_user_id_info_get
+def user_info_get(user_id):  # noqa: E501
+    """user_info_get
 
      # noqa: E501
 
@@ -183,8 +195,8 @@ def user_user_id_info_get(user_id):  # noqa: E501
     )
     return user, 501
 
-def user_user_id_order_complete_put(user_id, order_id):  # noqa: E501
-    """user_user_id_order_complete_put
+def user_order_complete_put(user_id, order_id):  # noqa: E501
+    """user_order_complete_put
 
      # noqa: E501
 
@@ -198,8 +210,8 @@ def user_user_id_order_complete_put(user_id, order_id):  # noqa: E501
     return 'do some magic!', 501
 
 
-def user_user_id_order_deliver_put(user, user_id, order_id):  # noqa: E501
-    """user_user_id_order_deliver_put
+def user_order_deliver_put(user, user_id, order_id):  # noqa: E501
+    """user_order_deliver_put
 
      # noqa: E501
 
@@ -213,8 +225,8 @@ def user_user_id_order_deliver_put(user, user_id, order_id):  # noqa: E501
     return 'do some magic!', 501
 
 
-def user_user_id_order_report_post(user, user_id, reported_id, order_id, message):  # noqa: E501
-    """user_user_id_order_report_post
+def user_order_report_post(user, user_id, reported_id, order_id, message):  # noqa: E501
+    """user_order_report_post
 
      # noqa: E501
 
@@ -232,8 +244,8 @@ def user_user_id_order_report_post(user, user_id, reported_id, order_id, message
     return 'do some magic!', 501
 
 
-def user_user_id_order_request_post(user, user_id, order):  # noqa: E501
-    """user_user_id_order_request_post
+def user_order_request_post(user, user_id, order):  # noqa: E501
+    """user_order_request_post
 
      # noqa: E501
 
@@ -253,8 +265,8 @@ def user_user_id_order_request_post(user, user_id, order):  # noqa: E501
     return 'do some magic!', 501
 
 
-def user_user_id_orders_delivering_get(user, user_id):  # noqa: E501
-    """user_user_id_orders_delivering_get
+def user_orders_delivering_get(user, user_id):  # noqa: E501
+    """user_orders_delivering_get
 
      # noqa: E501
 
@@ -266,8 +278,8 @@ def user_user_id_orders_delivering_get(user, user_id):  # noqa: E501
     return 'do some magic!', 501
 
 
-def user_user_id_orders_requesting_get(user, user_id):  # noqa: E501
-    """user_user_id_orders_requesting_get
+def user_orders_requesting_get(user, user_id):  # noqa: E501
+    """user_orders_requesting_get
 
      # noqa: E501
 
@@ -300,26 +312,36 @@ def user_update_put(user, user_id, name=None, password=None, phone_number=None, 
 
         return "Successfully updated the user.", 200 
 
-def users_login_get(user):  # noqa: E501
+def users_login_post(body):  # noqa: E501
     """Log in a user. Set cookie auth token.
 
      # noqa: E501
 
-
     :rtype: str
     """
-    
+
+    logging.info(f"Attempting to log in user with email {body['email']}")
+
+    # Find user associated with the email
     with conn.cursor() as cursor:
+        cursor.execute("SELECT (user_id, password) FROM Admins WHERE email = ?", [body["email"]])
+        row = cursor.fetchone()
+        if not row:
+            raise Exception("user with the provided username does not exist")
+        if row["password"] != body["password"]:
+            raise Exception("incorrect user credentials")
+        user_id = row["user_id"]
+    
         # Create and map auth token to the user in the database
         new_auth_token = secrets.token_hex(constants.AUTH_TOKEN_LENGTH)
-        cursor.execute("UPDATE Users SET auth_token = ? WHERE user_id = ?", [new_auth_token, user.id])
+        cursor.execute("UPDATE Users SET auth_token = ? WHERE user_id = ?", [new_auth_token, user_id])
         cursor.commit()
 
-        response = make_response("Login succesful")
+        # Set cookie and return the response
+        logging.info(f"Succesfully logged in user '{user_id}'.")
+        response = make_response(f"Succesfully logged in user '{user_id}'.")
         response.set_cookie("user_token", new_auth_token)
-
-    return "Successfully logged in.", 200
-
+        return response, 200
 
 def users_register_post(user, email, password, name, phone_number):  # noqa: E501
     """Create a new user.
