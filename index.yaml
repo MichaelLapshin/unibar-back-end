@@ -131,8 +131,7 @@ paths:
       - in: path
         name: user_id
         description: User ID of user we are trying to update.
-        required:
-          - user_id
+        required: true
         schema:
           $ref: "#/components/schemas/UserID"
     put:
@@ -170,8 +169,7 @@ paths:
       - in: path
         name: user_id
         description: User ID of the user to identify who's info to get.
-        required:
-          - user_id
+        required: true
         schema:
           $ref: "#/components/schemas/UserID"
     get:
@@ -194,8 +192,7 @@ paths:
       - in: path
         name: user_id
         description: User ID of which we want to see the orders they claimed. 
-        required:
-          - user_id
+        required: true
         schema:
           $ref: "#/components/schemas/UserID"
     get:
@@ -220,8 +217,7 @@ paths:
       - in: path
         name: user_id
         description: User ID of which we want to see the orders they are requesting.  
-        required:
-          - user_id
+        required: true
         schema:
           $ref: "#/components/schemas/UserID"
     get:
@@ -401,8 +397,7 @@ paths:
       - in: path
         name: order_id
         description: The ID of the order which the client wants to see its info.
-        required:
-          - order_id
+        required: true
         schema:
           $ref: "#/components/schemas/OrderID"
     get:

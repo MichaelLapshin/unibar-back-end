@@ -314,7 +314,7 @@ paths:
         explode: false
         in: path
         name: order_id
-        required: false
+        required: true
         schema:
           $ref: '#/components/schemas/OrderID'
         style: simple
@@ -365,7 +365,7 @@ paths:
         explode: false
         in: path
         name: user_id
-        required: false
+        required: true
         schema:
           $ref: '#/components/schemas/UserID'
         style: simple
@@ -391,7 +391,7 @@ paths:
         explode: false
         in: path
         name: user_id
-        required: false
+        required: true
         schema:
           $ref: '#/components/schemas/UserID'
         style: simple
@@ -419,7 +419,7 @@ paths:
         explode: false
         in: path
         name: user_id
-        required: false
+        required: true
         schema:
           $ref: '#/components/schemas/UserID'
         style: simple
@@ -447,7 +447,7 @@ paths:
         explode: false
         in: path
         name: user_id
-        required: false
+        required: true
         schema:
           $ref: '#/components/schemas/UserID'
         style: simple
