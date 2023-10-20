@@ -125,8 +125,16 @@ paths:
         400:
           description: Failed to log in user.
 
-  /user/update:
+  /user/{user_id}/update:
     summary: Update user information.
+    parameters:
+      - in: path
+        name: user_id
+        description: User ID of user we are trying to update.
+        required:
+          - user_id
+        schema:
+          $ref: "#/components/schemas/UserID"
     put:
       security:
         - UserAuth: []
@@ -153,24 +161,20 @@ paths:
         400:
           description: Failed to update user information.
 
-  /user/info:
+  /user/{user_id}:
     summary: Get public information about the user.
+    parameters:
+      - in: path
+        name: user_id
+        description: User ID of the user to identify who's info to get.
+        required:
+          - user_id
+        schema:
+          $ref: "#/components/schemas/UserID"
     get:
       security:
         - UserAuth: []
         - AdminAuth: []
-      requestBody:
-        description: User ID of the user to identify who.
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - user_id
-              properties:
-                user_id:
-                  $ref: "#/components/schemas/UserID"
       responses:
         200:
           description: Successfully fetched user's public information.
@@ -181,24 +185,20 @@ paths:
         400:
           description: Failed to fetch user's public information.
 
-  /user/orders/delivering:
+  /user/{user_id}/orders/delivering:
     summary: Fetch the user's orders that they are claiming to be delivering.
+    parameters:
+      - in: path
+        name: user_id
+        description: User ID of which we want to see their orders currently being delivered.  
+        required:
+          - user_id
+        schema:
+          $ref: "#/components/schemas/UserID"
     get:
       security:
         - UserAuth: []
         - AdminAuth: []
-      requestBody:
-        description: User ID of which we want to see their orders currently being delivered.  
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - user_id
-              properties:
-                user_id:
-                  $ref: "#/components/schemas/UserID"
       responses:
         200:
           description: Succesfully fetched user's claimed orders to be delivering.
@@ -211,24 +211,20 @@ paths:
         400:
           description: Failed to fetch user's claimed orders to be delivering.
 
-  /user/orders/requesting:
+  /user/{user_id}/orders/requesting:
     summary: Fetch the user's order that they are requesting.
+    parameters:
+      - in: path
+        name: user_id
+        description: User ID of which we want to see the orders they are requesting.  
+        required:
+          - user_id
+        schema:
+          $ref: "#/components/schemas/UserID"
     get:
       security:
         - UserAuth: []
         - AdminAuth: []
-      requestBody:
-        description: User ID of which we want to see the orders they are requesting.  
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - user_id
-              properties:
-                user_id:
-                  $ref: "#/components/schemas/UserID"
       responses:
         200:
           description: Succesfully fetched user's active orders.
@@ -241,7 +237,7 @@ paths:
         400:
           description: Failed to fetch user's active delivery requests.
 
-  /user/order/request:
+  /order/request:
     summary: Create a new delivery request.
     post:
       security:
@@ -264,7 +260,7 @@ paths:
         400:
           description: Failed to create a delivery request.
 
-  /user/order/deliver:
+  /order/deliver:
     summary: Indicate which order the user intends to fulfill.
     put:
       security:
@@ -289,7 +285,7 @@ paths:
         409:
           description: Order is currently being fulfilled by another user.
 
-  /user/order/report:
+  /order/report:
     summary: Reports another user in the context of the order.
     post:
       security:
@@ -318,7 +314,7 @@ paths:
         400:
           description: Failed to report the user.
 
-  /user/order/complete:
+  /order/complete:
     summary: Completes the order and performs necessary delivery-token transfer from food receiver to deliverer.
     put:
       security:
