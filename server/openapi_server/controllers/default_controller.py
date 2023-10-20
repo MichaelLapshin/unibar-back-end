@@ -439,8 +439,8 @@ def user_user_id_orders_claimed_get(user_id):  # noqa: E501
         return orders, 200
 
 
-def user_user_id_orders_requesting_get(user_id):  # noqa: E501
-    """user_user_id_orders_requesting_get
+def user_user_id_orders_active_get(user_id):  # noqa: E501
+    """user_user_id_orders_active_get
 
      # noqa: E501
 
