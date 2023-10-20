@@ -3,7 +3,6 @@ info:
   description: API definition for interacting with the back-end system.
   title: UniBar API
   version: 1.0.0
-
 servers:
 - description: Local test server.
   url: http://localhost
@@ -11,10 +10,31 @@ servers:
   url: http://dev.unibar.xyz
 - description: Production server.
   url: http://prod.unibar.xyz
-
 paths:
+  /admin/login:
+    post:
+      operationId: admin_login_post
+      requestBody:
+        $ref: '#/components/requestBodies/body_admin_login'
+        content:
+          application/json:
+            schema:
+              properties:
+                admin_token:
+                  format: password
+                  type: string
+              required:
+              - admin_token
+              type: object
+        description: Admin login API token.
+      responses:
+        "200":
+          description: Successfully logged in the admin.
+        "400":
+          description: Failed to log in the admin.
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    summary: Logs in the admin. Sets token in cookies.
   /admin/messages/list:
-    description: Lists all messages.
     get:
       operationId: admin_messages_list_get
       responses:
@@ -31,9 +51,8 @@ paths:
       security:
       - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: Lists all messages.
   /admin/orders/list:
-    description: Lists all orders.
     get:
       operationId: admin_orders_list_get
       responses:
@@ -50,9 +69,8 @@ paths:
       security:
       - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: Lists all orders.
   /admin/reports/list:
-    description: Lists all user reports.
     get:
       operationId: admin_reports_list_get
       responses:
@@ -69,33 +87,8 @@ paths:
       security:
       - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
-  /admin/user/{user_id}:
-    description: Lists specific user information (password & access token redacted).
-    get:
-      operationId: admin_user_user_id_get
-      parameters:
-      - description: User of which to fetch information about.
-        explode: false
-        in: path
-        name: user_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/UserID'
-        style: simple
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: Successfully fetched user information.
-      security:
-      - AdminAuth: []
-      x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: Lists all user reports.
   /admin/users/list:
-    description: Lists all users.
     get:
       operationId: admin_users_list_get
       responses:
@@ -112,9 +105,8 @@ paths:
       security:
       - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: Lists all users.
   /deployment:
-    description: States what type of deployment type this server is.
     get:
       operationId: deployment_get
       responses:
@@ -125,45 +117,219 @@ paths:
                 type: string
           description: Type of deployment (e.g. development, production, testing)
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: States what type of deployment type this server is.
   /message:
-    description: Send a message to UniBar.
     post:
       operationId: message_post
-      parameters:
-      - description: User that wants to send a message.
-        explode: false
-        in: header
-        name: user_id
-        required: false
-        schema:
-          $ref: '#/components/schemas/UserID'
-        style: simple
-      - description: Email of the person sending the message.
-        explode: false
-        in: header
-        name: email
-        required: false
-        schema:
-          $ref: '#/components/schemas/Email'
-        style: simple
-      - description: Message to send to UniBar.
-        explode: false
-        in: header
-        name: message
+      requestBody:
+        $ref: '#/components/requestBodies/body_message'
+        content:
+          application/json:
+            schema:
+              properties:
+                user_id:
+                  description: Identification of a user.
+                  format: uuid
+                  type: string
+                email:
+                  description: Email format.
+                  format: email
+                  type: string
+                name:
+                  type: string
+                message:
+                  type: string
+              required:
+              - message
+              - name
+              type: object
+        description: Send an arbitrary message to UniBar with name and message being
+          optional. Email or user ID can be specified to help get back in contact
+          with the message sender.
         required: true
-        schema:
-          type: string
-        style: simple
       responses:
         "200":
           description: Successfully sent a message to UniBar.
         "400":
           description: Failed to send a message to UniBar.
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: Send a message to UniBar.
+  /order/complete:
+    put:
+      operationId: order_complete_put
+      requestBody:
+        $ref: '#/components/requestBodies/body_order_complete'
+        content:
+          application/json:
+            schema:
+              properties:
+                order_id:
+                  description: Identification of the order.
+                  format: uuid
+                  type: string
+              required:
+              - order_id
+              type: object
+        description: The ID of the order being marked as complete.
+        required: true
+      responses:
+        "200":
+          description: Successfully completed the order and transfered the delivery-token
+            from food receiver to the deliverer.
+        "400":
+          description: Failed to complete the order and transfer the delivery-token
+            from the food receiver to the deliverer.
+      security:
+      - UserAuth: []
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    summary: Completes the order and performs necessary delivery-token transfer from
+      food receiver to deliverer.
+  /order/claim:
+    put:
+      operationId: order_claim_put
+      requestBody:
+        $ref: '#/components/requestBodies/body_order_claim'
+        content:
+          application/json:
+            schema:
+              properties:
+                order_id:
+                  description: Identification of the order.
+                  format: uuid
+                  type: string
+              required:
+              - order_id
+              type: object
+        description: Delivery request order which the user is requesting to deliver.
+        required: true
+      responses:
+        "200":
+          description: Succesfully indicated that user intends to fulfill the order.
+        "400":
+          description: Could not fulfil the order.
+        "403":
+          description: Order is currently being fulfilled by another user.
+      security:
+      - UserAuth: []
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    summary: Indicate which order the user intends to fulfill.
+  /order/report:
+    post:
+      operationId: order_report_post
+      requestBody:
+        $ref: '#/components/requestBodies/body_order_report'
+        content:
+          application/json:
+            schema:
+              properties:
+                order_id:
+                  description: Identification of the order.
+                  format: uuid
+                  type: string
+                reported_id:
+                  description: Identification of a user.
+                  format: uuid
+                  type: string
+                message:
+                  type: string
+              required:
+              - message
+              - order_id
+              - reported_id
+              type: object
+        description: Details about the order and user involved in the report. Includes
+          a message.
+        required: true
+      responses:
+        "200":
+          description: Successfully reported the user.
+        "400":
+          description: Failed to report the user.
+      security:
+      - UserAuth: []
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    summary: Reports another user in the context of the order.
+  /order/create:
+    post:
+      operationId: order_create_post
+      requestBody:
+        $ref: '#/components/requestBodies/body_order_request'
+        content:
+          application/json:
+            schema:
+              properties:
+                order:
+                  $ref: '#/components/schemas/Order'
+              required:
+              - order
+              type: object
+        description: Delivery request order which the user wishes to create.
+        required: true
+      responses:
+        "200":
+          description: Successfully created a delivery request.
+        "400":
+          description: Failed to create a delivery request.
+        "406":
+          description: Not enough delivery tokens.
+      security:
+      - UserAuth: []
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    summary: Create a new delivery request.
+  /order/unclaim:
+    put:
+      operationId: order_unclaim_put
+      requestBody:
+        $ref: '#/components/requestBodies/body_order_unclaim'
+        content:
+          application/json:
+            schema:
+              properties:
+                order_id:
+                  description: Identification of the order.
+                  format: uuid
+                  type: string
+              required:
+              - order_id
+              type: object
+        description: Delivery request order which the user is no longer claiming.
+        required: true
+      responses:
+        "200":
+          description: Succesfully indicated that user no longer intends to fulfill
+            the order.
+        "400":
+          description: Could not unclaim the order.
+        "403":
+          description: User is not currently claiming this order.
+      security:
+      - UserAuth: []
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    summary: Indicate which order the user no longer intends to fulfill.
+  /order/{order_id}:
+    get:
+      operationId: order_order_id_get
+      parameters:
+      - description: The ID of the order which the client wants to see its info.
+        explode: false
+        in: path
+        name: order_id
+        required: false
+        schema:
+          $ref: '#/components/schemas/OrderID'
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: Successfully fetched order.
+        "400":
+          description: Failed to fetch orders.
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    summary: Fetch a specific order.
   /orders/available:
-    description: Lists all orders currently available to fulfill.
     get:
       operationId: orders_available_get
       responses:
@@ -178,54 +344,28 @@ paths:
         "400":
           description: Failed to fetch orders available to fulfill.
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
-  /orders/{order_id}:
-    description: Fetch a specific order.
-    get:
-      operationId: orders_order_id_get
-      parameters:
-      - description: Identification of the order.
-        explode: false
-        in: path
-        name: order_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/OrderID'
-        style: simple
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-          description: Successfully fetched order.
-        "400":
-          description: Failed to fetch orders.
-      x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: Lists all orders currently available to fulfill.
   /ping:
-    description: Pings the server.
     get:
       operationId: ping_get
       responses:
         "200":
-          description: Successful ping from the server.
           content:
             text/plain:
               schema:
                 type: string
+          description: Successful ping from the server.
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
-  /user/{user_id}/info:
-    description: Get public information about the user.
+    summary: Pings the server.
+  /user/{user_id}:
     get:
-      operationId: user_user_id_info_get
+      operationId: user_user_id_get
       parameters:
-      - description: Identifying the user.
+      - description: User ID of the user to identify who's info to get.
         explode: false
         in: path
         name: user_id
-        required: true
+        required: false
         schema:
           $ref: '#/components/schemas/UserID'
         style: simple
@@ -242,164 +382,16 @@ paths:
       - UserAuth: []
       - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
-  /user/{user_id}/order/complete:
-    description: Completes the order and performs necessary delivery-token transfer
-      from food receiver to deliverer.
-    put:
-      operationId: user_user_id_order_complete_put
-      parameters:
-      - description: User whose order is complete and is giving a delivery-token to
-          the deliverer.
-        explode: false
-        in: path
-        name: user_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/UserID'
-        style: simple
-      - description: Order that is complete and for which a delivery-token must be
-          transfered.
-        explode: false
-        in: header
-        name: order_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/OrderID'
-        style: simple
-      responses:
-        "200":
-          description: Successfully completed the order and transfered the delivery-token
-            from food receiver to the deliverer.
-        "400":
-          description: Failed to complete the order and transfer the delivery-token
-            from the food receiver to the deliverer.
-      security:
-      - UserAuth: []
-      - AdminAuth: []
-      x-openapi-router-controller: openapi_server.controllers.default_controller
-
-  /user/{user_id}/order/deliver:
-    description: Indicate which order the user intends to fulfill.
-    put:
-      operationId: user_user_id_order_deliver_put
-      parameters:
-      - description: User to fulfil the order.
-        explode: false
-        in: path
-        name: user_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/UserID'
-        style: simple
-      - description: Order to deliver.
-        explode: false
-        in: header
-        name: order_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/OrderID'
-        style: simple
-      responses:
-        "200":
-          description: Succesfully indicated that user intends to fulfill the order.
-        "400":
-          description: Could not fulfil the order.
-        "409":
-          description: Order is currently being fulfilled by another user.
-      security:
-      - UserAuth: []
-      - AdminAuth: []
-      x-openapi-router-controller: openapi_server.controllers.default_controller
-
-  /user/{user_id}/order/report:
-    description: Reports another user in the context of the order.
-    post:
-      operationId: user_user_id_order_report_post
-      parameters:
-      - description: User that is reporting.
-        explode: false
-        in: path
-        name: user_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/UserID'
-        style: simple
-      - description: User that is reported.
-        explode: false
-        in: header
-        name: reported_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/UserID'
-        style: simple
-      - description: Order in which the report happened.
-        explode: false
-        in: header
-        name: order_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/UserID'
-        style: simple
-      - description: Report message from the user reporting.
-        explode: false
-        in: header
-        name: message
-        required: true
-        schema:
-          $ref: '#/components/schemas/UserID'
-        style: simple
-      responses:
-        "200":
-          description: Successfully reported the user.
-        "400":
-          description: Failed to report the user.
-      security:
-      - UserAuth: []
-      - AdminAuth: []
-      x-openapi-router-controller: openapi_server.controllers.default_controller
-
-  /user/{user_id}/order/request:
-    description: Create a new delivery request.
-    post:
-      operationId: user_user_id_order_request_post
-      parameters:
-      - description: Identifying the user.
-        explode: false
-        in: path
-        name: user_id
-        required: true
-        schema:
-          $ref: '#/components/schemas/UserID'
-        style: simple
-      - description: Delivery request order of the user.
-        explode: false
-        in: header
-        name: order
-        required: true
-        schema:
-          $ref: '#/components/schemas/Order'
-        style: simple
-      responses:
-        "200":
-          description: Successfully created a delivery request.
-        "400":
-          description: Failed to create a delivery request.
-      security:
-      - UserAuth: []
-      - AdminAuth: []
-      x-openapi-router-controller: openapi_server.controllers.default_controller
-
-  /user/{user_id}/orders/delivering:
-    description: Fetch the user's orders that they are claiming to be delivering.
+    summary: Get public information about the user.
+  /user/{user_id}/orders/claimed:
     get:
-      operationId: user_user_id_orders_delivering_get
+      operationId: user_user_id_orders_claimed_get
       parameters:
-      - description: Identifying the user.
+      - description: User ID of which we want to see the orders they are currently claiming.
         explode: false
         in: path
         name: user_id
-        required: true
+        required: false
         schema:
           $ref: '#/components/schemas/UserID'
         style: simple
@@ -411,24 +403,23 @@ paths:
                 items:
                   $ref: '#/components/schemas/Order'
                 type: array
-          description: Succesfully fetched user's claimed orders to be delivering.
+          description: Succesfully fetched user's claimed orders.
         "400":
-          description: Failed to fetch user's claimed orders to be delivering.
+          description: Failed to fetch user's claimed orders.
       security:
       - UserAuth: []
       - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
-  /user/{user_id}/orders/requesting:
-    description: Fetch the user's order that they are requesting.
+    summary: Fetch the user's orders that they claimed.
+  /user/{user_id}/orders/active:
     get:
-      operationId: user_user_id_orders_requesting_get
+      operationId: user_user_id_orders_active_get
       parameters:
-      - description: Identifying the user.
+      - description: User ID of which we want to see the orders they are currently requesting.
         explode: false
         in: path
         name: user_id
-        required: true
+        required: false
         schema:
           $ref: '#/components/schemas/UserID'
         style: simple
@@ -447,67 +438,80 @@ paths:
       - UserAuth: []
       - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: Fetch the user's active orders that they are requesting.
   /user/{user_id}/update:
-    description: Update user information.
-    parameters:
-      - name: user_id
-        description: Identifying the user.
-        explode: false
-        required: true
-        in: path
-        schema:
-          $ref: "#/components/schemas/UserID"
-        style: simple
-      # Email should not be changed
-      - name: name
-        description: New name of the user.
-        explode: false
-        required: false
-        in: header
-        schema:
-          $ref: "#/components/schemas/Name"
-        style: simple
-      - name: password
-        description: New password of the user.
-        explode: false
-        required: false
-        in: header
-        schema:
-          $ref: "#/components/schemas/Password"
-        style: simple
-      - name: phone_number
-        description: New phone number of the user.
-        explode: false
-        required: false
-        in: header
-        schema:
-          $ref: "#/components/schemas/PhoneNumber"
-        style: simple
-      - name: etransfer_email
-        description: New e-transfer email of the user.
-        explode: false
-        required: false
-        in: header
-        schema:
-          $ref: "#/components/schemas/PhoneNumber"
-        style: simple
     put:
-      operationId: user_update_put
-      security:
-        - UserAuth: []
-        - AdminAuth: []
+      operationId: user_user_id_update_put
+      parameters:
+      - description: User ID of user we are trying to update.
+        explode: false
+        in: path
+        name: user_id
+        required: false
+        schema:
+          $ref: '#/components/schemas/UserID'
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/body_user_update'
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  description: User's display name.
+                  type: string
+                password:
+                  description: Password format.
+                  format: password
+                  type: string
+                phone_number:
+                  description: Phone number format.
+                  pattern: ^\d{10}$
+                  type: string
+                etransfer_email:
+                  description: Email format.
+                  format: email
+                  type: string
+              type: object
+        description: Information about the user to change. For changing the user's
+          name, password, phone_number, and etransfer_email.
+        required: true
       responses:
         "200":
           description: Successfully updated user information.
         "400":
           description: Failed to update user information.
+        "401":
+          description: Not authorized to update user's information.
+      security:
+      - UserAuth: []
+      - AdminAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: Update user information.
   /users/login:
-    description: Logging in a user.
     post:
       operationId: users_login_post
+      requestBody:
+        $ref: '#/components/requestBodies/body_users_login'
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  description: Email format.
+                  format: email
+                  type: string
+                password:
+                  description: Password format.
+                  format: password
+                  type: string
+              required:
+              - email
+              - password
+              type: object
+        description: Credentials of the user to log in. Email and password required
+          for logging in the user.
+        required: true
       responses:
         "200":
           content:
@@ -519,44 +523,40 @@ paths:
           description: Failed to log in user.
       summary: Log in a user. Set cookie auth token.
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: Logging in a user.
   /users/register:
-    description: Registering a user.
     post:
       operationId: users_register_post
-      parameters:
-      - description: Email of the user to create.
-        explode: false
-        in: header
-        name: email
+      requestBody:
+        $ref: '#/components/requestBodies/body_users_register'
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  description: Email format.
+                  format: email
+                  type: string
+                password:
+                  description: Password format.
+                  format: password
+                  type: string
+                name:
+                  description: User's display name.
+                  type: string
+                phone_number:
+                  description: Phone number format.
+                  pattern: ^\d{10}$
+                  type: string
+              required:
+              - email
+              - name
+              - password
+              - phone_number
+              type: object
+        description: Specify the basic and mandatory fields to create a new user (email,
+          password, name, phone_number).
         required: true
-        schema:
-          $ref: '#/components/schemas/Email'
-        style: simple
-      - description: Password used for user to sign-in with.
-        explode: false
-        in: header
-        name: password
-        required: true
-        schema:
-          $ref: '#/components/schemas/Password'
-        style: simple
-      - description: Name of the new user.
-        explode: false
-        in: header
-        name: name
-        required: true
-        schema:
-          $ref: '#/components/schemas/Name'
-        style: simple
-      - description: Phone number of the new user.
-        explode: false
-        in: header
-        name: phone_number
-        required: true
-        schema:
-          $ref: '#/components/schemas/PhoneNumber'
-        style: simple
       responses:
         "200":
           description: Successfully registered a new user.
@@ -566,8 +566,68 @@ paths:
           description: User already exists.
       summary: Create a new user.
       x-openapi-router-controller: openapi_server.controllers.default_controller
-
+    summary: Registering a user.
 components:
+  requestBodies:
+    body_users_register:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_users_register'
+      required: true
+    body_message:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_message'
+      required: true
+    body_admin_login:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_admin_login'
+      required: true
+    body_order_complete:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_order_complete'
+      required: true
+    body_order_report:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_order_report'
+      required: true
+    body_order_claim:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_order_claim'
+      required: true
+    body_order_unclaim:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_order_unclaim'
+    body_order_request:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_order_request'
+      required: true
+    body_user_update:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_user_update'
+      required: true
+    body_users_login:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_users_login'
+      required: true
   schemas:
     UserID:
       description: Identification of a user.
@@ -594,6 +654,14 @@ components:
       type: integer
     User:
       description: Public-safe user definition.
+      example:
+        delivery_tokens: 0
+        registered_time: 2000-01-23T04:56:07.000+00:00
+        user_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        etransfer_email: etransfer_email
+        name: name
+        phone_number: phone_number
+        email: email
       properties:
         user_id:
           description: Identification of a user.
@@ -611,8 +679,8 @@ components:
           pattern: ^\d{10}$
           type: string
         registered_time:
+          format: date-time
           type: string
-          format: time
         delivery_tokens:
           description: Delivery token count.
           format: int32
@@ -628,6 +696,19 @@ components:
       type: string
     Order:
       description: Content of the order.
+      example:
+        creation_time: 2000-01-23T04:56:07.000+00:00
+        deliverer_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        orderer_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        delivered_time: 2000-01-23T04:56:07.000+00:00
+        destination: destination
+        deadline_time: 2000-01-23T04:56:07.000+00:00
+        source: source
+        order_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        payment_method: cash
+        claimed_time: 2000-01-23T04:56:07.000+00:00
+        order: order
+        status: available
       properties:
         order_id:
           description: Identification of the order.
@@ -642,16 +723,16 @@ components:
           format: uuid
           type: string
         creation_time:
-          format: time
+          format: date-time
           type: string
         deadline_time:
-          format: time
+          format: date-time
           type: string
         claimed_time:
-          format: time
+          format: date-time
           type: string
         delivered_time:
-          format: time
+          format: date-time
           type: string
         order:
           type: string
@@ -675,6 +756,12 @@ components:
       type: object
     Message:
       description: A user message to UniBar.
+      example:
+        user_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        message_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        time: 2000-01-23T04:56:07.000+00:00
+        message: message
+        email: email
       properties:
         message_id:
           format: uuid
@@ -690,7 +777,7 @@ components:
         message:
           type: string
         time:
-          format: time
+          format: date-time
           type: string
       type: object
     Report:
@@ -712,12 +799,144 @@ components:
           format: uuid
           type: string
         time:
-          format: time
+          format: date-time
           type: string
         message:
           type: string
         conclusion:
           type: string
+      type: object
+    body_message:
+      properties:
+        user_id:
+          description: Identification of a user.
+          format: uuid
+          type: string
+        email:
+          description: Email format.
+          format: email
+          type: string
+        name:
+          type: string
+        message:
+          type: string
+      required:
+      - message
+      - name
+      type: object
+    body_users_register:
+      properties:
+        email:
+          description: Email format.
+          format: email
+          type: string
+        password:
+          description: Password format.
+          format: password
+          type: string
+        name:
+          description: User's display name.
+          type: string
+        phone_number:
+          description: Phone number format.
+          pattern: ^\d{10}$
+          type: string
+      required:
+      - email
+      - name
+      - password
+      - phone_number
+      type: object
+    body_users_login:
+      properties:
+        email:
+          description: Email format.
+          format: email
+          type: string
+        password:
+          description: Password format.
+          format: password
+          type: string
+      required:
+      - email
+      - password
+      type: object
+    body_user_update:
+      properties:
+        name:
+          description: User's display name.
+          type: string
+        password:
+          description: Password format.
+          format: password
+          type: string
+        phone_number:
+          description: Phone number format.
+          pattern: ^\d{10}$
+          type: string
+        etransfer_email:
+          description: Email format.
+          format: email
+          type: string
+      type: object
+    body_order_request:
+      properties:
+        order:
+          $ref: '#/components/schemas/Order'
+      required:
+      - order
+      type: object
+    body_order_claim:
+      properties:
+        order_id:
+          description: Identification of the order.
+          format: uuid
+          type: string
+      required:
+      - order_id
+      type: object
+    body_order_unclaim:
+      properties:
+        order_id:
+          description: Identification of the order.
+          format: uuid
+          type: string
+      required:
+      - order_id
+      type: object
+    body_order_report:
+      properties:
+        order_id:
+          description: Identification of the order.
+          format: uuid
+          type: string
+        reported_id:
+          description: Identification of a user.
+          format: uuid
+          type: string
+        message:
+          type: string
+      required:
+      - message
+      - order_id
+      - reported_id
+      type: object
+    body_order_complete:
+      properties:
+        order_id:
+          description: Identification of the order.
+          format: uuid
+          type: string
+      required:
+      - order_id
+      type: object
+    body_admin_login:
+      properties:
+        admin_token:
+          format: password
+          type: string
+      required:
+      - admin_token
       type: object
   securitySchemes:
     UserAuth:

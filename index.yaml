@@ -138,6 +138,7 @@ paths:
     put:
       security:
         - UserAuth: []
+        - AdminAuth: []
       requestBody:
         description: Information about the user to change. For changing the user's name, password, phone_number, and etransfer_email.
         required: true
@@ -160,6 +161,8 @@ paths:
           description: Successfully updated user information.
         400:
           description: Failed to update user information.
+        401:
+          description: Not authorized to update user's information.
 
   /user/{user_id}:
     summary: Get public information about the user.
@@ -185,12 +188,12 @@ paths:
         400:
           description: Failed to fetch user's public information.
 
-  /user/{user_id}/orders/delivering:
-    summary: Fetch the user's orders that they are claiming to be delivering.
+  /user/{user_id}/orders/claimed:
+    summary: Fetch the user's orders that they claimed.
     parameters:
       - in: path
         name: user_id
-        description: User ID of which we want to see their orders currently being delivered.  
+        description: User ID of which we want to see the orders they claimed. 
         required:
           - user_id
         schema:
@@ -201,7 +204,7 @@ paths:
         - AdminAuth: []
       responses:
         200:
-          description: Succesfully fetched user's claimed orders to be delivering.
+          description: Succesfully fetched user's claimed orders.
           content:
             application/json:
               schema:
@@ -209,10 +212,10 @@ paths:
                 items:
                   $ref: "#/components/schemas/Order"
         400:
-          description: Failed to fetch user's claimed orders to be delivering.
+          description: Failed to fetch user's claimed orders.
 
-  /user/{user_id}/orders/requesting:
-    summary: Fetch the user's order that they are requesting.
+  /user/{user_id}/orders/active:
+    summary: Fetch the user's active orders that they are requesting. (available & claimed)
     parameters:
       - in: path
         name: user_id
@@ -237,7 +240,7 @@ paths:
         400:
           description: Failed to fetch user's active delivery requests.
 
-  /order/request:
+  /order/create:
     summary: Create a new delivery request.
     post:
       security:
@@ -250,17 +253,32 @@ paths:
             schema:
               type: object
               required:
+                - deadline_time
                 - order
+                - source
+                - destination
+                - payment_method
               properties:
+                deadline_time:
+                  type: string
+                  format: date-time
                 order:
-                  $ref: "#/components/schemas/Order"
+                  type: string
+                source:
+                  type: string
+                destination:
+                  type: string
+                payment_method:
+                  $ref: "#/components/schemas/PaymentMethod"
       responses:
         200:
           description: Successfully created a delivery request.
         400:
           description: Failed to create a delivery request.
+        406:
+          description: Not enough delivery tokens.
 
-  /order/deliver:
+  /order/claim:
     summary: Indicate which order the user intends to fulfill.
     put:
       security:
@@ -282,8 +300,33 @@ paths:
           description: Succesfully indicated that user intends to fulfill the order.
         400:
           description: Could not fulfil the order.
-        409:
+        403:
           description: Order is currently being fulfilled by another user.
+
+  /order/unclaim:
+    summary: Indicate which order the user no longer intends to fulfill.
+    put:
+      security:
+        - UserAuth: []
+      requestBody:
+        description: Delivery request order which the user is no longer delivering.  
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - order_id
+              properties:
+                order_id:
+                  $ref: "#/components/schemas/OrderID"
+      responses:
+        200:
+          description: Succesfully indicated that user no longer intends to fulfill the order.
+        400:
+          description: Could not undeliver the order.
+        403:
+          description: User is not currently delivering this order.        
 
   /order/report:
     summary: Reports another user in the context of the order.
@@ -378,6 +421,7 @@ paths:
     post:
       requestBody:
         description: Admin login API token.
+        required: true
         content:
           application/json:
             schema:
@@ -390,7 +434,7 @@ paths:
                   format: password
       responses: 
         200:
-          description: Successfulled logged in the admin.
+          description: Successfully logged in the admin.
         400:
           description: Failed to log in the admin.
 
@@ -510,6 +554,11 @@ components:
       description: Identification of the order.
       type: string
       format: uuid
+    PaymentMethod:
+      type: string
+      enum:
+        - cash
+        - etransfer
     Order:
       description: Content of the order.
       type: object
@@ -539,10 +588,7 @@ components:
         destination:
           type: string
         payment_method:
-          type: string
-          enum:
-            - cash
-            - etransfer
+          $ref: "#/components/schemas/PaymentMethod"
         status:
           type: string
           enum:

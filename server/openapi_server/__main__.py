@@ -3,12 +3,20 @@
 import connexion
 import datetime
 import os
+import logging
 
 from openapi_server import encoder
 from openapi_server import server_attr
 from openapi_server.database import db_rds
 
 def main():
+    # Setup logging
+    log = logging.getLogger()
+    log.setLevel
+    fh = logging.FileHandler(f"unibar_server_{datetime.datetime.now()}.log")
+    fh.setLevel(logging.DEBUG)
+    log.addHandler(fh)
+
     # Save the PID into a file
     print("PID:", os.getpid())
     with open('latest_deployment_pid.txt', 'w') as f:

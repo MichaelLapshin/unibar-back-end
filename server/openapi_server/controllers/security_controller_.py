@@ -1,13 +1,12 @@
 import logging
-import secrets
-
 from typing import List
-from flask import session, make_response
 
 from openapi_server.database.db_rds import conn
 from openapi_server import constants
 
-# For better authenticating users vs. admins
+log = logging.getLogger()
+
+# For better authenticating users and admins
 class AuthInstance(object):
     def __init__(self, type, id) -> None:
         # Sanity check that everything's good
@@ -24,7 +23,6 @@ class AuthInstance(object):
     def id(self) -> str:
         return self._id
 
-# Security functions
 def info_from_AdminAuth(api_key, required_scopes):
     """
     Check and retrieve authentication information from api_key.
@@ -38,21 +36,17 @@ def info_from_AdminAuth(api_key, required_scopes):
     :return: Information attached to provided api_key or None if api_key is invalid or does not allow access to called API
     :rtype: dict | None
     """
-
-    # Compare the admin token to what's stored in the database
-    logging.info("Attempting to log in an admin.")
-    
-    if not api_key:
-        raise Exception("an empty apikey was provided when trying to auth an admin")
+    log.info("Attempting to log in an admin.")
+    assert api_key, "an empty apikey was provided when trying to auth an admin"
 
     with conn.cursor() as cursor:
-        cursor.execute("SELECT (admin_id) FROM Admins WHERE auth_token = ?", [api_key])
+        cursor.execute("SELECT (admin_id, name) FROM Admins WHERE auth_token = ?", [api_key])
         row = cursor.fetchone()
-        if not row:
-            raise Exception("auth token does not map to an admin")
+        assert row, "auth token does not map to an admin"
 
         admin_id = row["admin_id"]
-        logging.info(f"Matched admin auth token against admin_id '{admin_id}'")
+        name = row["name"]
+        log.info(f"Successfully authenticated admin '{name}' ({admin_id}).")
         return {'sub': AuthInstance(type=constants.AUTH_TYPE_ADMIN, id=admin_id)}
 
 def info_from_UserAuth(api_key, required_scopes):
@@ -68,19 +62,16 @@ def info_from_UserAuth(api_key, required_scopes):
     :return: Information attached to provided api_key or None if api_key is invalid or does not allow access to called API
     :rtype: dict | None
     """
-
-    # Compare the admin token to what's stored in the database
-    logging.info("Attempting to log in a user.")
     
-    if not api_key:
-        raise Exception("an empty apikey was provided when trying to auth a user")
+    log.info("Attempting to log in a user.")
+    assert api_key, "an empty apikey was provided when trying to auth a user"
 
     with conn.cursor() as cursor:
-        cursor.execute("SELECT (used_id) FROM Users WHERE auth_token = ?", [api_key])
+        cursor.execute("SELECT (user_id, name) FROM Users WHERE auth_token = ?", [api_key])
         row = cursor.fetchone()
-        if not row:
-            raise Exception("auth token does not map to user")
+        assert row, "auth token does not map to a user"
 
-        used_id = row["used_id"]
-        logging.info(f"Matched admin auth token against used_id '{used_id}'")
-        return {'sub': AuthInstance(type=constants.AUTH_TYPE_USER, id=used_id)}
+        user_id = row["user_id"]
+        name = row["name"]
+        log.info(f"Successfully authenticated user '{name}' ({user_id}).")
+        return {'sub': AuthInstance(type=constants.AUTH_TYPE_USER, id=user_id)}

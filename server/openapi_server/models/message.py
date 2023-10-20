@@ -27,14 +27,14 @@ class Message(Model):
         :param message: The message of this Message.  # noqa: E501
         :type message: str
         :param time: The time of this Message.  # noqa: E501
-        :type time: str
+        :type time: datetime
         """
         self.openapi_types = {
             'message_id': str,
             'user_id': str,
             'email': str,
             'message': str,
-            'time': str
+            'time': datetime
         }
 
         self.attribute_map = {
@@ -156,7 +156,7 @@ class Message(Model):
 
 
         :return: The time of this Message.
-        :rtype: str
+        :rtype: datetime
         """
         return self._time
 
@@ -166,7 +166,7 @@ class Message(Model):
 
 
         :param time: The time of this Message.
-        :type time: str
+        :type time: datetime
         """
 
         self._time = time

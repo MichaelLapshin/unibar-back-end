@@ -27,7 +27,7 @@ class Report(Model):
         :param order_id: The order_id of this Report.  # noqa: E501
         :type order_id: str
         :param time: The time of this Report.  # noqa: E501
-        :type time: str
+        :type time: datetime
         :param message: The message of this Report.  # noqa: E501
         :type message: str
         :param conclusion: The conclusion of this Report.  # noqa: E501
@@ -38,7 +38,7 @@ class Report(Model):
             'reporter_user_id': str,
             'reported_user_id': str,
             'order_id': str,
-            'time': str,
+            'time': datetime,
             'message': str,
             'conclusion': str
         }
@@ -168,7 +168,7 @@ class Report(Model):
 
 
         :return: The time of this Report.
-        :rtype: str
+        :rtype: datetime
         """
         return self._time
 
@@ -178,7 +178,7 @@ class Report(Model):
 
 
         :param time: The time of this Report.
-        :type time: str
+        :type time: datetime
         """
 
         self._time = time

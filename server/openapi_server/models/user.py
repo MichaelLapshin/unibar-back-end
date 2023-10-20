@@ -28,6 +28,8 @@ class User(Model):
         :type email: str
         :param phone_number: The phone_number of this User.  # noqa: E501
         :type phone_number: str
+        :param registered_time: The registered_time of this User.  # noqa: E501
+        :type registered_time: datetime
         :param delivery_tokens: The delivery_tokens of this User.  # noqa: E501
         :type delivery_tokens: int
         :param etransfer_email: The etransfer_email of this User.  # noqa: E501
@@ -38,7 +40,7 @@ class User(Model):
             'name': str,
             'email': str,
             'phone_number': str,
-            'registered_time', str,
+            'registered_time': datetime,
             'delivery_tokens': int,
             'etransfer_email': str
         }
@@ -172,7 +174,7 @@ class User(Model):
 
 
         :return: The registered_time of this User.
-        :rtype: str
+        :rtype: datetime
         """
         return self._registered_time
 
@@ -182,7 +184,7 @@ class User(Model):
 
 
         :param registered_time: The registered_time of this User.
-        :type registered_time: str
+        :type registered_time: datetime
         """
 
         self._registered_time = registered_time

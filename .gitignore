@@ -1,7 +1,9 @@
 # Testing code
 tester/
+server_unmodified/
+sanity_check/
 testing.yaml
-sanity_check
+
 
 # IDE rubble
 .DS_Store
