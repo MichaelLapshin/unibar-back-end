@@ -1,7 +1,10 @@
 # UniBar Back-End
 
+## Logging into AWS EC2
+Use the AWS console to access the EC2 instance an open a terminal session to it.
+
 ## Running the server
-1. Install the requirements: `pip3 install --no-cache-dir -r server/requirements.txt`
+1. Install the requirements: `sudo pip3 install --no-cache-dir -r server/requirements.txt`
 2. Configure the following environment variables:
 ```
 UNIBAR_DEPLOYMENT_NAME = <deployment_name>
@@ -11,7 +14,8 @@ UNIBAR_RDS_PASSWORD = <rds_server_password>
 UNIBAR_RDS_PORT = <rds_server_port>
 UNIBAR_RDS_DATABASE = <rds_server_database>
 ```
-3. Start the server: `python3 -m openapi_server` from the server directory
+3. Start the server: `sudo -E python3 -m openapi_server` from the server directory
+ - `sudo -E` runs the server as admin while keeping environment variables.
 
 ## Creating a database and tables
 1. Fetch the UniBar back-end repository.
