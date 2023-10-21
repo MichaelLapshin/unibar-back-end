@@ -39,7 +39,7 @@ def admin_login_post(body: dict):  # noqa: E501
 
     # Find user associated with the email
     with db.conn.cursor() as cursor:
-        cursor.execute("SELECT (admin_id, name) FROM Admins WHERE auth_token = %s", [body.admin_token])
+        cursor.execute("SELECT admin_id, name FROM Admins WHERE auth_token = %s", [body.admin_token])
         row = cursor.fetchone()
         assert row, "admin with the provided api key does not exist"
 
@@ -105,7 +105,7 @@ def admin_users_list_get():  # noqa: E501
     :rtype: List[User]
     """
     with db.conn.cursor() as cursor:
-        cursor.execute("SELECT (user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email) FROM Users")
+        cursor.execute("SELECT user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email FROM Users")
         results = cursor.fetchall()
         users = [User.from_dict(res) for res in results]
         return users, 200
@@ -233,7 +233,7 @@ def order_unclaim_put(user: AuthInstance, body: dict):
     with db.conn.cursor() as cursor:
         # Assert that the order to undeliver is being delivered by the user.
         cursor.execute(
-            "SELECT (deliverer_id) FROM Orders WHERE order_id = %s", 
+            "SELECT deliverer_id FROM Orders WHERE order_id = %s", 
             [body.order_id]
         )
         order = Order.from_dict(cursor.fetchone())
@@ -286,7 +286,7 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
     with db.conn.cursor() as cursor:
         # Validate that the reporter_user_id and reported_user_id are part of the order
         cursor.execute(
-            "SELECT (orderer_id, reported_id) FROM Orders WHERE order_id = %s",
+            "SELECT orderer_id, reported_id FROM Orders WHERE order_id = %s",
             [body.order_id]
         )
         order = Order.from_dict(cursor.fetchone())
@@ -338,7 +338,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
 
         # Check if user has tokens to use on the delivery
         cursor.execute(
-            "SELECT (delivery_tokens) FROM Users WHERE user_id = %s",
+            "SELECT delivery_tokens FROM Users WHERE user_id = %s",
             [user.id()]
         )
         user = User.from_dict(cursor.fetchone())
@@ -408,7 +408,7 @@ def user_user_id_get(user_id):  # noqa: E501
     """
     
     with db.conn.cursor() as cursor:
-        cursor.execute("SELECT (user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email) FROM Users WHERE user_id = %s", [user_id])
+        cursor.execute("SELECT user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email FROM Users WHERE user_id = %s", [user_id])
         row = cursor.fetchone()
         assert row, f"Could not find user with id {user_id}"
         return User.from_dict(row), 200
@@ -506,7 +506,7 @@ def users_login_post(body: dict):  # noqa: E501
 
     # Find user associated with the email
     with db.conn.cursor() as cursor:
-        cursor.execute("SELECT (user_id, name, auth_token, password) FROM Users WHERE email = %s", [body.email])
+        cursor.execute("SELECT user_id, name, auth_token, password FROM Users WHERE email = %s", [body.email])
         row = cursor.fetchone()
         assert row, "user with the provided username does not exist"
 
