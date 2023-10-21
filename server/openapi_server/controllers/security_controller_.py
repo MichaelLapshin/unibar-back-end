@@ -40,7 +40,7 @@ def info_from_AdminAuth(api_key: str, required_scopes):
     assert api_key, "an empty apikey was provided when trying to auth an admin"
 
     with db.conn.cursor() as cursor:
-        cursor.execute("SELECT (admin_id, name) FROM Admins WHERE auth_token = ?", [api_key])
+        cursor.execute("SELECT (admin_id, name) FROM Admins WHERE auth_token = %s", [api_key])
         row = cursor.fetchone()
         assert row, "auth token does not map to an admin"
 
@@ -67,7 +67,7 @@ def info_from_UserAuth(api_key: str, required_scopes):
     assert api_key, "an empty apikey was provided when trying to auth a user"
 
     with db.conn.cursor() as cursor:
-        cursor.execute("SELECT (user_id, name) FROM Users WHERE auth_token = ?", [api_key])
+        cursor.execute("SELECT (user_id, name) FROM Users WHERE auth_token = %s", [api_key])
         row = cursor.fetchone()
         assert row, "auth token does not map to a user"
 
