@@ -7,10 +7,10 @@ auth_token=$(openssl rand -hex 16) # 32 digit string
 registered_time=$(date '+%Y-%m-%d %H:%M:%S')
 
 # Database connectivity
-db_user=${$2:-$UNIBAR_RDS_USER}
-db_password=${$3:-$UNIBAR_RDS_PASSWORD}
-db_host=${$4:-$UNIBAR_RDS_HOSTNAME}
-db_port=${$5:-$UNIBAR_RDS_PORT}
+db_user="${$2:-$UNIBAR_RDS_USER}"
+db_password="${$3:-$UNIBAR_RDS_PASSWORD}"
+db_host="${$4:-$UNIBAR_RDS_HOSTNAME}"
+db_port="${$5:-$UNIBAR_RDS_PORT}"
 
 if [[ $# -eq 4 ]]; then
     echo "INSERT INTO UniBar.Admins (admin_id, name, auth_token, registered_time) VALUES \
