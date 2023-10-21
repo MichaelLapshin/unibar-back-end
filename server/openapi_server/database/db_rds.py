@@ -7,7 +7,7 @@ log = logging.getLogger()
 class DB:
     def connect(self):
         # Connect to the database
-        _conn = None
+        self._conn = None
         try:
             self._conn = pymysql.connect(
                 host=server_attr.rds_hostname,
@@ -37,4 +37,4 @@ class DB:
         # Close the database connection
         self._conn.close()
 
-db = DB
+db = DB()
