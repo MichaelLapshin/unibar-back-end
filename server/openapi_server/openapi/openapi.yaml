@@ -357,6 +357,16 @@ paths:
           description: Successful ping from the server.
       x-openapi-router-controller: openapi_server.controllers.default_controller
     summary: Pings the server.
+  /shutdown:
+    summary: Shut down the server.
+    get:
+      operationId: shutdown_get
+      security:
+      - AdminAuth: []
+      responses:
+        "200":
+          description: Successfully shut down the server.
+      x-openapi-router-controller: openapi_server.controllers.default_controller
   /user/{user_id}:
     get:
       operationId: user_user_id_get

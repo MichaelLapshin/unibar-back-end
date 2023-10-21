@@ -4,6 +4,7 @@ import connexion
 import datetime
 import os
 import logging
+from waitress import serve
 
 from openapi_server import encoder
 from openapi_server import server_attr
@@ -35,7 +36,6 @@ def main():
                 strict_validation=True)
 
     # Securely run the server
-    from waitress import serve
     serve(app, host="0.0.0.0", port=80)
 
     # Close the databse

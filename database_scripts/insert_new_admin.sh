@@ -24,5 +24,6 @@ if [[ $# -eq 4 ]]; then
     echo registered_time: $registered_time
     echo "======================="
     echo "Warning: Record the above information! Your admin token is important and will not be displayed again."
-
+else
+    echo "Invalid input. Use: ./insert_new_admin <db_user> <db_password> <db_host> <admin_name>"
 fi

@@ -3,7 +3,7 @@ import six
 from datetime import datetime
 import secrets
 import logging
-from flask import session, make_response
+from flask import session, make_response, request
 
 from openapi_server.models.body_message import BodyMessage
 from openapi_server.models.body_users_register import BodyUsersRegister
@@ -115,6 +115,18 @@ def admin_users_list_get():  # noqa: E501
         users = [User.from_dict(res) for res in results]
         return users, 200
 
+def shutdown_get():
+    """shutdown_get
+
+     # noqa: E501
+
+    :rtype: None
+    """
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
+    return "Successfully shut down the server.", 200
 
 def deployment_get():  # noqa: E501
     """deployment_get

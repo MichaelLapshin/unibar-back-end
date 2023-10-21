@@ -49,7 +49,6 @@ Documentation: `openapi-generator generate -i "server/openapi_server/openapi/ope
 ### Installing and Connecting to MySQL
 https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ConnectToInstance.html
 
-
 ```
 sudo dnf update -y
 sudo dnf install mariadb105-server

@@ -35,6 +35,14 @@ paths:
               schema:
                 type: string
   
+  /shutdown:
+    summary: Shut down the server.
+    get:
+      security:
+        - AdminAuth: []
+      200:
+        description: Successfully shut down the server.
+
   /message:
     summary: Send a message to UniBar.
     post:
