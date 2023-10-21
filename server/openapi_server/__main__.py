@@ -3,23 +3,15 @@
 import connexion
 import datetime
 import os
-import logging
 from waitress import serve
 
-from openapi_server import encoder
-from openapi_server import server_attr
+from openapi_server import encoder, server_attr
+from openapi_server.logger import log
 from openapi_server.database.db_rds import db
 
 def main():
-    # Setup logging
-    log = logging.getLogger()
-    log.setLevel
-    fh = logging.FileHandler(f"unibar_server_{datetime.datetime.now()}.log")
-    fh.setLevel(logging.DEBUG)
-    log.addHandler(fh)
-
     # Save the PID into a file
-    print("PID:", os.getpid())
+    log.info("PID:", os.getpid())
     with open('latest_deployment_pid.txt', 'w') as f:
         f.write(str(os.getpid()))
 

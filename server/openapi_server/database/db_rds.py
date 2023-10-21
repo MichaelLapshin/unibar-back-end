@@ -1,8 +1,7 @@
 import pymysql
-import logging
-from openapi_server import server_attr
 
-log = logging.getLogger()
+from openapi_server import server_attr
+from openapi_server.logger import log
 
 class DB:
     def connect(self):

@@ -1,10 +1,8 @@
-import logging
 from typing import List
 
 from openapi_server.database.db_rds import db
 from openapi_server import constants
-
-log = logging.getLogger()
+from openapi_server.logger import log
 
 # For better authenticating users and admins
 class AuthInstance(object):

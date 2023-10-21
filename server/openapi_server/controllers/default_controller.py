@@ -2,7 +2,6 @@ import connexion
 import six
 from datetime import datetime
 import secrets
-import logging
 from flask import session, make_response, request
 
 from openapi_server.models.body_message import BodyMessage
@@ -21,10 +20,9 @@ from openapi_server.models.order import Order  # noqa: E501
 from openapi_server.models.user import User  # noqa: E501
 from openapi_server.models.report import Report  # noqa: E501
 from openapi_server import util, server_attr, constants
+from openapi_server.logger import log
 from openapi_server.database.db_rds import db
 from openapi_server.controllers.security_controller_ import AuthInstance
-
-log = logging.getLogger()
 
 def admin_login_post(body):  # noqa: E501
     """admin_login_post
@@ -551,6 +549,9 @@ def users_register_post(body):  # noqa: E501
     :rtype: None
     """    
     log.info(f"Registering a new user.")
+
+    log.info(type(body))
+    log.info(body)
 
     if connexion.request.is_json:
         body = BodyUsersRegister.from_dict(connexion.request.get_json())  # noqa: E501
