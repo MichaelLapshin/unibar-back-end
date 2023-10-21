@@ -55,7 +55,7 @@ class User(Model):
             'etransfer_email': 'etransfer_email'
         }
 
-        format.enforce_phone_number(phone_number)
+        format.enforce_phone_number(phone_number, ignoreNone=True)
 
         self._user_id = user_id
         self._name = name
@@ -165,7 +165,7 @@ class User(Model):
         :param phone_number: The phone_number of this User.
         :type phone_number: str
         """
-        format.enforce_phone_number(phone_number)
+        format.enforce_phone_number(phone_number, ignoreNone=True)
         self._phone_number = phone_number
 
     @property

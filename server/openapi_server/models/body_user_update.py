@@ -43,8 +43,8 @@ class BodyUserUpdate(Model):
             'etransfer_email': 'etransfer_email'
         }
 
-        format.enforce_password(password)
-        format.enforce_phone_number(phone_number)
+        format.enforce_password(password, ignoreNone=True)
+        format.enforce_phone_number(phone_number, ignoreNone=True)
 
         self._name = name
         self._password = password
@@ -105,7 +105,7 @@ class BodyUserUpdate(Model):
         :param password: The password of this BodyUserUpdate.
         :type password: str
         """
-        format.enforce_password(password)
+        format.enforce_password(password, ignoreNone=True)
         self._password = password
 
     @property
@@ -128,7 +128,7 @@ class BodyUserUpdate(Model):
         :param phone_number: The phone_number of this BodyUserUpdate.
         :type phone_number: str
         """
-        format.enforce_phone_number(phone_number)
+        format.enforce_phone_number(phone_number, ignoreNone=True)
         self._phone_number = phone_number
 
     @property

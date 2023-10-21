@@ -34,7 +34,7 @@ class BodyUsersLogin(Model):
         }
 
         self._email = email
-        format.enforce_password(password)
+        format.enforce_password(password, ignoreNone=True)
         self._password = password
 
     @classmethod
@@ -95,5 +95,5 @@ class BodyUsersLogin(Model):
         """
         if password is None:
             raise ValueError("Invalid value for `password`, must not be `None`")  # noqa: E501
-        format.enforce_password(password)
+        format.enforce_password(password, ignoreNone=True)
         self._password = password

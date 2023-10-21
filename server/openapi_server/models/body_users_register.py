@@ -43,8 +43,8 @@ class BodyUsersRegister(Model):
             'phone_number': 'phone_number'
         }
 
-        format.enforce_password(password)
-        format.enforce_phone_number(phone_number)
+        format.enforce_password(password, ignoreNone=True)
+        format.enforce_phone_number(phone_number, ignoreNone=True)
 
         self._email = email
         self._password = password
@@ -110,7 +110,7 @@ class BodyUsersRegister(Model):
         if password is None:
             raise ValueError("Invalid value for `password`, must not be `None`")  # noqa: E501
 
-        format.enforce_password(password)
+        format.enforce_password(password, ignoreNone=True)
         self._password = password
 
     @property
@@ -161,5 +161,5 @@ class BodyUsersRegister(Model):
         if phone_number is None:
             raise ValueError("Invalid value for `phone_number`, must not be `None`")  # noqa: E501
         
-        format.enforce_phone_number(phone_number)
+        format.enforce_phone_number(phone_number, ignoreNone=True)
         self._phone_number = phone_number
