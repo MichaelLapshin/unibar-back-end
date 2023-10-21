@@ -559,7 +559,7 @@ def users_register_post(body):  # noqa: E501
 
     with conn.cursor() as cursor:
         cursor.execute(
-            "INSERT INTO Users (user_id, password, name, email, registered_time, delivery_tokens, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO Users (user_id, password, name, email, registered_time, delivery_tokens, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?)",
             [
                 util.generate_uuid(),
                 body.password(),
