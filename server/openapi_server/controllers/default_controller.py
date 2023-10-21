@@ -38,8 +38,8 @@ def admin_login_post(body: dict):  # noqa: E501
     body = BodyAdminLogin.from_dict(body)  # noqa: E501
 
     # Find user associated with the email
-    with db.conn().cursor() as cursor:
-        cursor.execute("SELECT (admin_id, name) FROM Admins WHERE auth_token = ?", [body.admin_token()])
+    with db.conn.cursor() as cursor:
+        cursor.execute("SELECT (admin_id, name) FROM Admins WHERE auth_token = ?", [body.admin_token])
         row = cursor.fetchone()
         assert row, "admin with the provided api key does not exist"
 
@@ -49,7 +49,7 @@ def admin_login_post(body: dict):  # noqa: E501
         # Set cookie and return the response
         log.info(f"Succesfully logged in admin '{name}' ({admin_id}).")
         response = make_response(f"Succesfully logged in admin '{name}'.")
-        response.set_cookie("admin_token", body.admin_token())
+        response.set_cookie("admin_token", body.admin_token)
         return response, 200
 
 
@@ -61,7 +61,7 @@ def admin_messages_list_get():  # noqa: E501
 
     :rtype: List[Message]
     """
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         cursor.execute("SELECT * FROM Messages")
         results = cursor.fetchall()
         messages = [Message.from_dict(res) for res in results]
@@ -76,7 +76,7 @@ def admin_orders_list_get():  # noqa: E501
 
     :rtype: List[Order]
     """
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
         orders = [Order.from_dict(res) for res in results]
@@ -90,7 +90,7 @@ def admin_reports_list_get():  # noqa: E501
 
     :rtype: List[Order]
     """
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         cursor.execute("SELECT * FROM Reports")
         results = cursor.fetchall()
         reports = [Report.from_dict(res) for res in results]
@@ -104,7 +104,7 @@ def admin_users_list_get():  # noqa: E501
 
     :rtype: List[User]
     """
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         cursor.execute("SELECT (user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email) FROM Users")
         results = cursor.fetchall()
         users = [User.from_dict(res) for res in results]
@@ -145,14 +145,14 @@ def message_post(body: dict):  # noqa: E501
     """
     body = BodyMessage.from_dict(body)  # noqa: E501
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         cursor.execute(
             "INSERT INTO Messages (message_id, user_id, email, message, time) VALUES (?, ?, ?, ?, ?)", 
             [
                 util.generate_uuid(),
-                body.user_id(),
-                body.email(),
-                body.message(),
+                body.user_id,
+                body.email,
+                body.message,
                 datetime.now()
             ]
         )
@@ -171,20 +171,20 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
     assert user.type() == constants.AUTH_TYPE_USER, "requesting order complete by a non-user"
     body = BodyOrderComplete.from_dict(body)  # noqa: E501
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         # Check that the order is being delivered
-        cursor.execute("SELECT * FROM Orders WHERE order_id = ?", [body.order_id()])
+        cursor.execute("SELECT * FROM Orders WHERE order_id = ?", [body.order_id])
         order = Order.from_dict(cursor.fetchone())
-        assert order.status() == Order.STATUS_CLAIMED, "Order must be first claimed to be complete."
-        assert order.orderer_id() == user.id(), "Only the orderer can mark the delivery as complete."
+        assert order.status == Order.STATUS_CLAIMED, "Order must be first claimed to be complete."
+        assert order.orderer_id == user.id, "Only the orderer can mark the delivery as complete."
 
         # Transfer delivery token from orderer to deliverer
-        cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens - 1 WHERE user_id = ?", [order.orderer_id()])
-        cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens + 1 WHERE user_id = ?", [order.deliverer_id()])
+        cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens - 1 WHERE user_id = ?", [order.orderer_id])
+        cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens + 1 WHERE user_id = ?", [order.deliverer_id])
         cursor.execute("UDPATE Orders SET delivered_time = ? WHERE order_id = ?", [datetime.now()])
         cursor.commit()
 
-        return f"Successfully marked order {order.order_id()} as complete.", 200
+        return f"Successfully marked order {order.order_id} as complete.", 200
 
 
 def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
@@ -200,17 +200,17 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
     assert user.type() == constants.AUTH_TYPE_USER
     body = BodyOrderClaim.from_dict(body)  # noqa: E501
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         # Check that the order is available
-        cursor.execute("SELECT * FROM Orders WHERE order_id = ?", body.order_id())
+        cursor.execute("SELECT * FROM Orders WHERE order_id = ?", body.order_id)
         order = Order.from_dict(cursor.fetchone())
-        assert order.status() == Order.STATUS_AVAILABLE
-        assert order.orderer_id() != user.id(), "Users cannot deliver to themselves."
+        assert order.status == Order.STATUS_AVAILABLE
+        assert order.orderer_id != user.id, "Users cannot deliver to themselves."
 
         # Claim the order
         cursor.execute(
             "UPDATE Orders SET deliverer_id = ?, claimed_time = ? WHERE order_id = ?",
-            [user.id(), datetime.now(), body.order_id()]
+            [user.id, datetime.now(), body.order_id]
         )
         cursor.commit()
     
@@ -227,14 +227,14 @@ def order_unclaim_put(user: AuthInstance, body: dict):
 
     :rtype: None
     """
-    assert user.type() == constants.AUTH_TYPE_USER
+    assert user.type == constants.AUTH_TYPE_USER
     body = BodyOrderUnclaim.from_dict(body)  # noqa: E501
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         # Assert that the order to undeliver is being delivered by the user.
         cursor.execute(
             "SELECT (deliverer_id) FROM Orders WHERE order_id = ?", 
-            [body.order_id()]
+            [body.order_id]
         )
         order = Order.from_dict(cursor.fetchone())
         assert order.deliverer_id() == user.id(), "Cannot undeliver an order not deliverying."
@@ -243,7 +243,7 @@ def order_unclaim_put(user: AuthInstance, body: dict):
         # Update the order to nullify the deliverer column
         cursor.execute(
             "UPDATE Orders SET deliverer_id = ?, claimed_time = ? WHERE order_id = ?",
-            [None, None, body.order_id()]
+            [None, None, body.order_id]
         )
         cursor.commit()
 
@@ -261,7 +261,7 @@ def order_order_id_get(order_id):  # noqa: E501
 
     :rtype: Order
     """
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         cursor.execute(
             "SELECT * FROM Orders WHERE order_id = ?", 
             [order_id]
@@ -280,36 +280,36 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
 
     :rtype: None
     """
-    assert user.type() == constants.AUTH_TYPE_USER, "not a user"
+    assert user.type == constants.AUTH_TYPE_USER, "not a user"
     body = BodyOrderReport.from_dict(body)  # noqa: E501
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         # Validate that the reporter_user_id and reported_user_id are part of the order
         cursor.execute(
             "SELECT (orderer_id, reported_id) FROM Orders WHERE order_id = ?",
-            [body.order_id()]
+            [body.order_id]
         )
         order = Order.from_dict(cursor.fetchone())
-        assert order.orderer_id() == user.id()
-        assert order.deliverer_id() == body.reported_id()    
+        assert order.orderer_id == user.id
+        assert order.deliverer_id == body.reported_id
 
         # Create order
         cursor.execute(
             "INSERT INTO Reports (report_id, reporter_user_id, reported_user_id, order_id, time, message) VALUES (?, ?, ?, ?, ?, ?)",
             [
                 util.generate_uuid(),
-                user.id(),
-                body.reported_id(),
-                body.order_id(),
+                user.id,
+                body.reported_id,
+                body.order_id,
                 datetime.now(),
-                body.message()
+                body.message
             ]
         )
         cursor.commit()
 
         # TODO: add logic to notify admins of the report
 
-        return f"Successfully reported user {body.reported_id()}.", 200
+        return f"Successfully reported user {body.reported_id}.", 200
         
 
 def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
@@ -325,14 +325,14 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
     assert user.type == constants.AUTH_TYPE_USER, "not a user"
     body = BodyOrderCreate.from_dict(body)  # noqa: E501
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         # Count number of active orders that user is requesting
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
-        cursor.execute("SELECT * FROM Orders WHERE orderer_id = ?", [user.id()])
+        cursor.execute("SELECT * FROM Orders WHERE orderer_id = ?", [user.id])
         results = cursor.fetchall()
         orders = filter(
             [Order.from_dict(res) for res in results], 
-            lambda o: o.orderer_id() == user.id() and \
+            lambda o: o.orderer_id == user.id and \
                 (o.status() == Order.STATUS_CLAIMED or o.status() == Order.STATUS_AVAILABLE)
         )
 
@@ -350,13 +350,13 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
             "INSERT INTO Orders (order_id, orderer_id, creation_time, deadline_time, order, source, destination, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 util.generate_uuid(),
-                user.id(),
+                user.id,
                 datetime.now(),
-                body.deadline_time(),
-                body.order(),
-                body.source(),
-                body.destination(),
-                body.payment_method()
+                body.deadline_time,
+                body.order,
+                body.source,
+                body.destination,
+                body.payment_method
             ]
         )
         cursor.commit()
@@ -373,13 +373,13 @@ def orders_available_get():  # noqa: E501
     :rtype: List[Order]
     """
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
         orders = filter(
             [Order.from_dict(res) for res in results], 
-            lambda o: o.status() == Order.STATUS_AVAILABLE
+            lambda o: o.status == Order.STATUS_AVAILABLE
         )
         return orders, 200
 
@@ -407,7 +407,7 @@ def user_user_id_get(user_id):  # noqa: E501
     :rtype: User
     """
     
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         cursor.execute("SELECT (user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email) FROM Users WHERE user_id = ?", [user_id])
         row = cursor.fetchone()
         assert row, f"Could not find user with id {user_id}"
@@ -425,13 +425,13 @@ def user_user_id_orders_claimed_get(user_id):  # noqa: E501
     :rtype: List[Order]
     """
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE deliverer_id = ?", [user_id])
         results = cursor.fetchall()
         orders = filter(
             [Order.from_dict(res) for res in results], 
-            lambda o: o.status() == Order.STATUS_CLAIMED and o.deliverer_id() == user_id
+            lambda o: o.status == Order.STATUS_CLAIMED and o.deliverer_id() == user_id
         )
         return orders, 200
 
@@ -447,14 +447,14 @@ def user_user_id_orders_active_get(user_id):  # noqa: E501
     :rtype: List[Order]
     """
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = ?", [user_id])
         results = cursor.fetchall()
         orders = filter(
             [Order.from_dict(res) for res in results], 
-            lambda o: o.orderer_id() == user_id and \
-                (o.status() == Order.STATUS_CLAIMED or o.status() == Order.STATUS_AVAILABLE)
+            lambda o: o.orderer_id == user_id and \
+                (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE)
         )
         return orders, 200
 
@@ -471,20 +471,20 @@ def user_user_id_update_put(user: AuthInstance, user_id, body: dict):  # noqa: E
 
     :rtype: None
     """
-    if (user.id() != user_id) and (user.type() != constants.AUTH_TYPE_ADMIN):
+    if (user.id != user_id) and (user.type != constants.AUTH_TYPE_ADMIN):
         return "Not authorized to update user's information.", 401
 
     body = BodyUserUpdate.from_dict(body)  # noqa: E501
 
-    with db.conn().cursor() as cursor:
-        if body.name() is not None:
-            cursor.execute("UPDATE Users SET name = ? WHERE user_id = ?", [body.name(), user_id])
-        if body.password() is not None:
-            cursor.execute("UPDATE Users SET password = ? WHERE user_id = ?", [body.password(), user_id])
-        if body.phone_number() is not None:
-            cursor.execute("UPDATE Users SET phone_number = ? WHERE user_id = ?", [body.phone_number(), user_id])
-        if body.etransfer_email() is not None:
-            cursor.execute("UPDATE Users SET etransfer_email = ? WHERE user_id = ?", [body.etransfer_email(), user_id])
+    with db.conn.cursor() as cursor:
+        if body.name is not None:
+            cursor.execute("UPDATE Users SET name = ? WHERE user_id = ?", [body.name, user_id])
+        if body.password is not None:
+            cursor.execute("UPDATE Users SET password = ? WHERE user_id = ?", [body.password, user_id])
+        if body.phone_number is not None:
+            cursor.execute("UPDATE Users SET phone_number = ? WHERE user_id = ?", [body.phone_number, user_id])
+        if body.etransfer_email is not None:
+            cursor.execute("UPDATE Users SET etransfer_email = ? WHERE user_id = ?", [body.etransfer_email, user_id])
         cursor.commit()
 
     return "Successfully updated user information.", 200
@@ -505,8 +505,8 @@ def users_login_post(body: dict):  # noqa: E501
     body = BodyUsersLogin.from_dict(body)  # noqa: E501
 
     # Find user associated with the email
-    with db.conn().cursor() as cursor:
-        cursor.execute("SELECT (user_id, name, auth_token, password) FROM Users WHERE email = ?", [body.email()])
+    with db.conn.cursor() as cursor:
+        cursor.execute("SELECT (user_id, name, auth_token, password) FROM Users WHERE email = ?", [body.email])
         row = cursor.fetchone()
         assert row, "user with the provided username does not exist"
 
@@ -537,19 +537,19 @@ def users_register_post(body: dict):  # noqa: E501
 
     # TODO: Add email-confirmation logic
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         cursor.execute(
             "INSERT INTO Users (user_id, password, name, email, registered_time, delivery_tokens, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?)",
             [
                 util.generate_uuid(),
-                body.password(),
-                body.name(),
-                body.email(),
+                body.password,
+                body.name,
+                body.email,
                 datetime.now(),
                 constants.NEW_USER_DELIVERY_TOKENS,
-                body.phone_number()
+                body.phone_number
             ]
         )
         cursor.commit()
     
-    return f"Successfully registered user {body.name()}", 200
+    return f"Successfully registered user {body.name}", 200

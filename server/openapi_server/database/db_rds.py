@@ -4,9 +4,12 @@ from openapi_server import server_attr
 from openapi_server.logger import log
 
 class DB:
+
+    def __init__(self) -> None:
+        self._conn = None
+    
     def connect(self):
         # Connect to the database
-        self._conn = None
         try:
             self._conn = pymysql.connect(
                 host=server_attr.rds_hostname,
@@ -27,6 +30,7 @@ class DB:
             log.error(f"Error: {e}")
             self._conn.close()
 
+    @property
     def conn(self):
         if self._conn == None:
             log.error("RDS DB connection is None!")

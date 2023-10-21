@@ -15,9 +15,11 @@ class AuthInstance(object):
         self._type = type
         self._id = id
     
+    @property
     def type(self) -> str:
         return self._type
 
+    @property
     def id(self) -> str:
         return self._id
 
@@ -37,7 +39,7 @@ def info_from_AdminAuth(api_key: str, required_scopes):
     log.info("Attempting to log in an admin.")
     assert api_key, "an empty apikey was provided when trying to auth an admin"
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         cursor.execute("SELECT (admin_id, name) FROM Admins WHERE auth_token = ?", [api_key])
         row = cursor.fetchone()
         assert row, "auth token does not map to an admin"
@@ -64,7 +66,7 @@ def info_from_UserAuth(api_key: str, required_scopes):
     log.info("Attempting to log in a user.")
     assert api_key, "an empty apikey was provided when trying to auth a user"
 
-    with db.conn().cursor() as cursor:
+    with db.conn.cursor() as cursor:
         cursor.execute("SELECT (user_id, name) FROM Users WHERE auth_token = ?", [api_key])
         row = cursor.fetchone()
         assert row, "auth token does not map to a user"
