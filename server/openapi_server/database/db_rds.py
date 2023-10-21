@@ -1,7 +1,9 @@
 import pymysql
+import logging
 from openapi_server import server_attr
 
 conn = None
+log = logging.getLogger()
 
 def connect():
     # Connect to the database
@@ -15,14 +17,14 @@ def connect():
         )
 
         if conn is not None:
-            print("Connected to the MySQL database.")
+            log.info("Connected to the MySQL database.")
         else:
             raise Exception("Failed to connect to the RDS MySQL database.")
         
         conn.select_db(server_attr.rds_database)
 
     except pymysql.MySQLError as e:
-        print(f"Error: {e}")
+        log.error(f"Error: {e}")
         conn.close()
 
 def close():
