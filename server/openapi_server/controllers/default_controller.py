@@ -156,7 +156,7 @@ def message_post(body: dict):  # noqa: E501
                 datetime.now()
             ]
         )
-        cursor.commit()
+        db.conn.commit()
 
     return "Successfully sent a message to UniBar.", 200
 
@@ -182,7 +182,7 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens - 1 WHERE user_id = %s", [order.orderer_id])
         cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens + 1 WHERE user_id = %s", [order.deliverer_id])
         cursor.execute("UDPATE Orders SET delivered_time = %s WHERE order_id = %s", [datetime.now()])
-        cursor.commit()
+        db.conn.commit()
 
         return f"Successfully marked order {order.order_id} as complete.", 200
 
@@ -212,7 +212,7 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
             "UPDATE Orders SET deliverer_id = %s, claimed_time = %s WHERE order_id = %s",
             [user.id, datetime.now(), body.order_id]
         )
-        cursor.commit()
+        db.conn.commit()
     
     return "Successfully claimed the order", 200
 
@@ -245,7 +245,7 @@ def order_unclaim_put(user: AuthInstance, body: dict):
             "UPDATE Orders SET deliverer_id = %s, claimed_time = %s WHERE order_id = %s",
             [None, None, body.order_id]
         )
-        cursor.commit()
+        db.conn.commit()
 
 
     return "Successfully unclaimed the order.", 200
@@ -305,7 +305,7 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
                 body.message
             ]
         )
-        cursor.commit()
+        db.conn.commit()
 
         # TODO: add logic to notify admins of the report
 
@@ -359,7 +359,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
                 body.payment_method
             ]
         )
-        cursor.commit()
+        db.conn.commit()
 
     return "Successfully created a delivery request.", 200
 
@@ -485,7 +485,7 @@ def user_user_id_update_put(user: AuthInstance, user_id, body: dict):  # noqa: E
             cursor.execute("UPDATE Users SET phone_number = %s WHERE user_id = %s", [body.phone_number, user_id])
         if body.etransfer_email is not None:
             cursor.execute("UPDATE Users SET etransfer_email = %s WHERE user_id = %s", [body.etransfer_email, user_id])
-        cursor.commit()
+        db.conn.commit()
 
     return "Successfully updated user information.", 200
 
@@ -550,6 +550,6 @@ def users_register_post(body: dict):  # noqa: E501
                 body.phone_number
             ]
         )
-        cursor.commit()
+        db.conn.commit()
     
     return f"Successfully registered user {body.name}", 200
