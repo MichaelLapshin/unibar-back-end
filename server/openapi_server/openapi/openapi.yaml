@@ -955,7 +955,7 @@ components:
       type: apiKey
       x-apikeyInfoFunc: openapi_server.controllers.security_controller_.info_from_UserAuth
     AdminAuth:
-      in: header
+      in: cookie
       name: admin_token
       type: apiKey
       x-apikeyInfoFunc: openapi_server.controllers.security_controller_.info_from_AdminAuth

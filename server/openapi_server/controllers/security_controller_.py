@@ -36,7 +36,7 @@ def info_from_AdminAuth(api_key: str, required_scopes):
     :return: Information attached to provided api_key or None if api_key is invalid or does not allow access to called API
     :rtype: dict | None
     """
-    log.info("Attempting to log in an admin.")
+    log.info("Authorizing an admin...")
     assert api_key, "an empty apikey was provided when trying to auth an admin"
 
     with db.conn.cursor() as cursor:
@@ -62,8 +62,7 @@ def info_from_UserAuth(api_key: str, required_scopes):
     :return: Information attached to provided api_key or None if api_key is invalid or does not allow access to called API
     :rtype: dict | None
     """
-    
-    log.info("Attempting to log in a user.")
+    log.info("Authorizing a user...")
     assert api_key, "an empty apikey was provided when trying to auth a user"
 
     with db.conn.cursor() as cursor:

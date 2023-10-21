@@ -644,5 +644,5 @@ components:
       name: user_token
     AdminAuth:
       type: apiKey
-      in: header
+      in: cookie
       name: admin_token
