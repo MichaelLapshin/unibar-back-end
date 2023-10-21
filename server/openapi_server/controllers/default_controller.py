@@ -214,7 +214,7 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
         )
         db.conn.commit()
     
-    return "Successfully claimed the order", 200
+    return "Successfully claimed the order.", 200
 
 
 def order_unclaim_put(user: AuthInstance, body: dict):
@@ -552,4 +552,4 @@ def users_register_post(body: dict):  # noqa: E501
         )
         db.conn.commit()
     
-    return f"Successfully registered user {body.name}", 200
+    return f"Successfully registered user {body.name}.", 200
