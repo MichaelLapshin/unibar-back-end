@@ -8,7 +8,7 @@ from waitress import serve
 
 from openapi_server import encoder
 from openapi_server import server_attr
-from openapi_server.database import db_rds
+from openapi_server.database.db_rds import db
 
 def main():
     # Setup logging
@@ -24,7 +24,7 @@ def main():
         f.write(str(os.getpid()))
 
     # Connect to the databas
-    db_rds.connect()
+    db.connect()
 
     # Launch the server
     server_attr.start_time = datetime.datetime.now()
@@ -39,7 +39,7 @@ def main():
     serve(app, host="0.0.0.0", port=80)
 
     # Close the databse
-    db_rds.close()
+    db.close()
 
 if __name__ == '__main__':
     main()

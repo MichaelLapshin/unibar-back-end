@@ -21,7 +21,7 @@ from openapi_server.models.order import Order  # noqa: E501
 from openapi_server.models.user import User  # noqa: E501
 from openapi_server.models.report import Report  # noqa: E501
 from openapi_server import util, server_attr, constants
-from openapi_server.database.db_rds import conn
+from openapi_server.database.db_rds import db
 from openapi_server.controllers.security_controller_ import AuthInstance
 
 log = logging.getLogger()
@@ -43,7 +43,7 @@ def admin_login_post(body):  # noqa: E501
         body = BodyAdminLogin.from_dict(connexion.request.get_json())  # noqa: E501
 
     # Find user associated with the email
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         cursor.execute("SELECT (admin_id, name) FROM Admins WHERE auth_token = ?", [body.admin_token()])
         row = cursor.fetchone()
         assert row, "admin with the provided api key does not exist"
@@ -66,7 +66,7 @@ def admin_messages_list_get():  # noqa: E501
 
     :rtype: List[Message]
     """
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         cursor.execute("SELECT * FROM Messages")
         results = cursor.fetchall()
         messages = [Message.from_dict(res) for res in results]
@@ -81,7 +81,7 @@ def admin_orders_list_get():  # noqa: E501
 
     :rtype: List[Order]
     """
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
         orders = [Order.from_dict(res) for res in results]
@@ -95,7 +95,7 @@ def admin_reports_list_get():  # noqa: E501
 
     :rtype: List[Order]
     """
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         cursor.execute("SELECT * FROM Reports")
         results = cursor.fetchall()
         reports = [Report.from_dict(res) for res in results]
@@ -109,7 +109,7 @@ def admin_users_list_get():  # noqa: E501
 
     :rtype: List[User]
     """
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         cursor.execute("SELECT (user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email) FROM Users")
         results = cursor.fetchall()
         users = [User.from_dict(res) for res in results]
@@ -152,7 +152,7 @@ def message_post(body):  # noqa: E501
     if connexion.request.is_json:
         body = BodyMessage.from_dict(connexion.request.get_json())  # noqa: E501
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         cursor.execute(
             "INSERT INTO Messages (message_id, user_id, email, message, time) VALUES (?, ?, ?, ?, ?)", 
             [
@@ -180,7 +180,7 @@ def order_complete_put(user: AuthInstance, body):  # noqa: E501
     if connexion.request.is_json:
         body = BodyOrderComplete.from_dict(connexion.request.get_json())  # noqa: E501
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         # Check that the order is being delivered
         cursor.execute("SELECT * FROM Orders WHERE order_id = ?", [body.order_id()])
         order = Order.from_dict(cursor.fetchone())
@@ -211,7 +211,7 @@ def order_claim_put(user: AuthInstance, body):  # noqa: E501
     if connexion.request.is_json:
         body = BodyOrderClaim.from_dict(connexion.request.get_json())  # noqa: E501
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = ?", body.order_id())
         order = Order.from_dict(cursor.fetchone())
@@ -242,7 +242,7 @@ def order_unclaim_put(user: AuthInstance, body):
     if connexion.request.is_json:
         body = BodyOrderUnclaim.from_dict(connexion.request.get_json())  # noqa: E501
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         # Assert that the order to undeliver is being delivered by the user.
         cursor.execute(
             "SELECT (deliverer_id) FROM Orders WHERE order_id = ?", 
@@ -273,7 +273,7 @@ def order_order_id_get(order_id):  # noqa: E501
 
     :rtype: Order
     """
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         cursor.execute(
             "SELECT * FROM Orders WHERE order_id = ?", 
             [order_id]
@@ -297,7 +297,7 @@ def order_report_post(user: AuthInstance, body):  # noqa: E501
     
     assert user.type == constants.AUTH_TYPE_USER, "not a user"
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         # Validate that the reporter_user_id and reported_user_id are part of the order
         cursor.execute(
             "SELECT (orderer_id, reported_id) FROM Orders WHERE order_id = ?",
@@ -341,7 +341,7 @@ def order_create_post(user, body):  # noqa: E501
     if connexion.request.is_json:
         body = BodyOrderCreate.from_dict(connexion.request.get_json())  # noqa: E501
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         # Count number of active orders that user is requesting
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = ?", [user.id()])
@@ -389,7 +389,7 @@ def orders_available_get():  # noqa: E501
     :rtype: List[Order]
     """
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
@@ -422,7 +422,7 @@ def user_user_id_get(user_id):  # noqa: E501
     :rtype: User
     """
     
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         cursor.execute("SELECT (user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email) FROM Users WHERE user_id = ?", [user_id])
         row = cursor.fetchone()
         assert row, f"Could not find user with id {user_id}"
@@ -440,7 +440,7 @@ def user_user_id_orders_claimed_get(user_id):  # noqa: E501
     :rtype: List[Order]
     """
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE deliverer_id = ?", [user_id])
         results = cursor.fetchall()
@@ -462,7 +462,7 @@ def user_user_id_orders_active_get(user_id):  # noqa: E501
     :rtype: List[Order]
     """
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = ?", [user_id])
         results = cursor.fetchall()
@@ -492,7 +492,7 @@ def user_user_id_update_put(user: AuthInstance, user_id, body):  # noqa: E501
     if connexion.request.is_json:
         body = BodyUserUpdate.from_dict(connexion.request.get_json())  # noqa: E501
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         if body.name() is not None:
             cursor.execute("UPDATE Users SET name = ? WHERE user_id = ?", [body.name(), user_id])
         if body.password() is not None:
@@ -523,7 +523,7 @@ def users_login_post(body):  # noqa: E501
         body = BodyUsersLogin.from_dict(connexion.request.get_json())  # noqa: E501
 
     # Find user associated with the email
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         cursor.execute("SELECT (user_id, name, auth_token, password) FROM Users WHERE email = ?", [body.email()])
         row = cursor.fetchone()
         assert row, "user with the provided username does not exist"
@@ -557,7 +557,7 @@ def users_register_post(body):  # noqa: E501
 
     # TODO: Add email-confirmation logic
 
-    with conn.cursor() as cursor:
+    with db.conn().cursor() as cursor:
         cursor.execute(
             "INSERT INTO Users (user_id, password, name, email, registered_time, delivery_tokens, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?)",
             [
