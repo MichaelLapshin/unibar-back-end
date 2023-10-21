@@ -24,7 +24,7 @@ from openapi_server.logger import log
 from openapi_server.database.db_rds import db
 from openapi_server.controllers.security_controller_ import AuthInstance
 
-def admin_login_post(body):  # noqa: E501
+def admin_login_post(body: dict):  # noqa: E501
     """admin_login_post
 
      # noqa: E501
@@ -34,11 +34,8 @@ def admin_login_post(body):  # noqa: E501
 
     :rtype: None
     """
-    
     log.info(f"Attempting to log in admin.")
-
-    if connexion.request.is_json:
-        body = BodyAdminLogin.from_dict(connexion.request.get_json())  # noqa: E501
+    body = BodyAdminLogin.from_dict(body)  # noqa: E501
 
     # Find user associated with the email
     with db.conn().cursor() as cursor:
@@ -137,7 +134,7 @@ def deployment_get():  # noqa: E501
         f"uptime: {datetime.now() - server_attr.start_time}", 200
 
 
-def message_post(body):  # noqa: E501
+def message_post(body: dict):  # noqa: E501
     """message_post
 
      # noqa: E501
@@ -146,9 +143,7 @@ def message_post(body):  # noqa: E501
 
     :rtype: None
     """
-
-    if connexion.request.is_json:
-        body = BodyMessage.from_dict(connexion.request.get_json())  # noqa: E501
+    body = BodyMessage.from_dict(body)  # noqa: E501
 
     with db.conn().cursor() as cursor:
         cursor.execute(
@@ -166,7 +161,7 @@ def message_post(body):  # noqa: E501
     return "Successfully sent a message to UniBar.", 200
 
 
-def order_complete_put(user: AuthInstance, body):  # noqa: E501
+def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
     """order_complete_put
 
      # noqa: E501
@@ -174,9 +169,7 @@ def order_complete_put(user: AuthInstance, body):  # noqa: E501
     :rtype: None
     """
     assert user.type() == constants.AUTH_TYPE_USER, "requesting order complete by a non-user"
-    
-    if connexion.request.is_json:
-        body = BodyOrderComplete.from_dict(connexion.request.get_json())  # noqa: E501
+    body = BodyOrderComplete.from_dict(body)  # noqa: E501
 
     with db.conn().cursor() as cursor:
         # Check that the order is being delivered
@@ -194,7 +187,7 @@ def order_complete_put(user: AuthInstance, body):  # noqa: E501
         return f"Successfully marked order {order.order_id()} as complete.", 200
 
 
-def order_claim_put(user: AuthInstance, body):  # noqa: E501
+def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
     """order_claim_put
 
      # noqa: E501
@@ -205,9 +198,7 @@ def order_claim_put(user: AuthInstance, body):  # noqa: E501
     :rtype: None
     """
     assert user.type() == constants.AUTH_TYPE_USER
-
-    if connexion.request.is_json:
-        body = BodyOrderClaim.from_dict(connexion.request.get_json())  # noqa: E501
+    body = BodyOrderClaim.from_dict(body)  # noqa: E501
 
     with db.conn().cursor() as cursor:
         # Check that the order is available
@@ -226,7 +217,7 @@ def order_claim_put(user: AuthInstance, body):  # noqa: E501
     return "Successfully claimed the order", 200
 
 
-def order_unclaim_put(user: AuthInstance, body):
+def order_unclaim_put(user: AuthInstance, body: dict):
     """order_unclaim_put
 
      # noqa: E501
@@ -236,9 +227,8 @@ def order_unclaim_put(user: AuthInstance, body):
 
     :rtype: None
     """
-
-    if connexion.request.is_json:
-        body = BodyOrderUnclaim.from_dict(connexion.request.get_json())  # noqa: E501
+    assert user.type() == constants.AUTH_TYPE_USER
+    body = BodyOrderUnclaim.from_dict(body)  # noqa: E501
 
     with db.conn().cursor() as cursor:
         # Assert that the order to undeliver is being delivered by the user.
@@ -280,7 +270,7 @@ def order_order_id_get(order_id):  # noqa: E501
         assert order, f"did not find order with ID {order_id}"
         return Order.from_dict(order), 200
 
-def order_report_post(user: AuthInstance, body):  # noqa: E501
+def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
     """order_report_post
 
      # noqa: E501
@@ -290,10 +280,8 @@ def order_report_post(user: AuthInstance, body):  # noqa: E501
 
     :rtype: None
     """
-    if connexion.request.is_json:
-        body = BodyOrderReport.from_dict(connexion.request.get_json())  # noqa: E501
-    
-    assert user.type == constants.AUTH_TYPE_USER, "not a user"
+    assert user.type() == constants.AUTH_TYPE_USER, "not a user"
+    body = BodyOrderReport.from_dict(body)  # noqa: E501
 
     with db.conn().cursor() as cursor:
         # Validate that the reporter_user_id and reported_user_id are part of the order
@@ -324,7 +312,7 @@ def order_report_post(user: AuthInstance, body):  # noqa: E501
         return f"Successfully reported user {body.reported_id()}.", 200
         
 
-def order_create_post(user: AuthInstance, body):  # noqa: E501
+def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
     """order_create_post
 
      # noqa: E501
@@ -335,9 +323,7 @@ def order_create_post(user: AuthInstance, body):  # noqa: E501
     :rtype: None
     """
     assert user.type == constants.AUTH_TYPE_USER, "not a user"
-
-    if connexion.request.is_json:
-        body = BodyOrderCreate.from_dict(connexion.request.get_json())  # noqa: E501
+    body = BodyOrderCreate.from_dict(body)  # noqa: E501
 
     with db.conn().cursor() as cursor:
         # Count number of active orders that user is requesting
@@ -406,6 +392,7 @@ def ping_get():  # noqa: E501
 
     :rtype: str
     """
+    log.info("(ping_get) Pinged.")
     return "ping", 200
 
 
@@ -472,7 +459,7 @@ def user_user_id_orders_active_get(user_id):  # noqa: E501
         return orders, 200
 
 
-def user_user_id_update_put(user: AuthInstance, user_id, body):  # noqa: E501
+def user_user_id_update_put(user: AuthInstance, user_id, body: dict):  # noqa: E501
     """user_user_id_update_put
 
      # noqa: E501
@@ -487,8 +474,7 @@ def user_user_id_update_put(user: AuthInstance, user_id, body):  # noqa: E501
     if (user.id() != user_id) and (user.type() != constants.AUTH_TYPE_ADMIN):
         return "Not authorized to update user's information.", 401
 
-    if connexion.request.is_json:
-        body = BodyUserUpdate.from_dict(connexion.request.get_json())  # noqa: E501
+    body = BodyUserUpdate.from_dict(body)  # noqa: E501
 
     with db.conn().cursor() as cursor:
         if body.name() is not None:
@@ -504,7 +490,7 @@ def user_user_id_update_put(user: AuthInstance, user_id, body):  # noqa: E501
     return "Successfully updated user information.", 200
 
 
-def users_login_post(body):  # noqa: E501
+def users_login_post(body: dict):  # noqa: E501
     """Log in a user. Set cookie auth token.
 
      # noqa: E501
@@ -516,9 +502,7 @@ def users_login_post(body):  # noqa: E501
     """
 
     log.info(f"Attempting to log in user.")
-
-    if connexion.request.is_json:
-        body = BodyUsersLogin.from_dict(connexion.request.get_json())  # noqa: E501
+    body = BodyUsersLogin.from_dict(body)  # noqa: E501
 
     # Find user associated with the email
     with db.conn().cursor() as cursor:
@@ -538,7 +522,7 @@ def users_login_post(body):  # noqa: E501
         return response, 200
 
 
-def users_register_post(body):  # noqa: E501
+def users_register_post(body: dict):  # noqa: E501
     """Create a new user.
 
      # noqa: E501
@@ -549,12 +533,7 @@ def users_register_post(body):  # noqa: E501
     :rtype: None
     """    
     log.info(f"Registering a new user.")
-
-    log.info(type(body))
-    log.info(body)
-
-    if connexion.request.is_json:
-        body = BodyUsersRegister.from_dict(connexion.request.get_json())  # noqa: E501
+    body = BodyUsersRegister.from_dict(body)  # noqa: E501
 
     # TODO: Add email-confirmation logic
 
