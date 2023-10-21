@@ -40,10 +40,11 @@ ssh-add ~/.ssh/github_rsa
 git pull
 ```
 
-## Generating Flask server from OpenApi documentation
+## Generating Documentation and Flask server from openapi specs
 https://github.com/OpenAPITools/openapi-generator/tree/master
 
-`openapi-generator generate -g python-flask -i index.yaml -o <output_dir>`
+Flask server: `openapi-generator generate -g python-flask -i index.yaml -o server/`
+Documentation: `openapi-generator generate -i "server/openapi_server/openapi/openapi.yaml" -g markdown -o docs/`
 
 ### Installing and Connecting to MySQL
 https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ConnectToInstance.html
