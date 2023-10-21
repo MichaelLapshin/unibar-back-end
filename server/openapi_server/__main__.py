@@ -11,7 +11,7 @@ from openapi_server.database.db_rds import db
 
 def main():
     # Save the PID into a file
-    log.info("PID:", os.getpid())
+    log.info("PID: %s", os.getpid())
     with open('latest_deployment_pid.txt', 'w') as f:
         f.write(str(os.getpid()))
 
