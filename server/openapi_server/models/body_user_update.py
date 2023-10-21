@@ -7,7 +7,7 @@ from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model_ import Model
 import re
-from openapi_server import util
+from openapi_server import util, format
 
 import re  # noqa: E501
 
@@ -42,6 +42,9 @@ class BodyUserUpdate(Model):
             'phone_number': 'phone_number',
             'etransfer_email': 'etransfer_email'
         }
+
+        format.enforce_password(password)
+        format.enforce_phone_number(phone_number)
 
         self._name = name
         self._password = password
@@ -102,7 +105,7 @@ class BodyUserUpdate(Model):
         :param password: The password of this BodyUserUpdate.
         :type password: str
         """
-
+        format.enforce_password(password)
         self._password = password
 
     @property
@@ -125,9 +128,7 @@ class BodyUserUpdate(Model):
         :param phone_number: The phone_number of this BodyUserUpdate.
         :type phone_number: str
         """
-        if phone_number is not None and not re.search(r'^\d{10}$', phone_number):  # noqa: E501
-            raise ValueError("Invalid value for `phone_number`, must be a follow pattern or equal to `/^\d{10}$/`")  # noqa: E501
-
+        format.enforce_phone_number(phone_number)
         self._phone_number = phone_number
 
     @property

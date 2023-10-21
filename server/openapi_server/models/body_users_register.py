@@ -7,7 +7,7 @@ from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model_ import Model
 import re
-from openapi_server import util
+from openapi_server import util, format
 
 import re  # noqa: E501
 
@@ -42,6 +42,9 @@ class BodyUsersRegister(Model):
             'name': 'name',
             'phone_number': 'phone_number'
         }
+
+        format.enforce_password(password)
+        format.enforce_phone_number(phone_number)
 
         self._email = email
         self._password = password
@@ -107,6 +110,7 @@ class BodyUsersRegister(Model):
         if password is None:
             raise ValueError("Invalid value for `password`, must not be `None`")  # noqa: E501
 
+        format.enforce_password(password)
         self._password = password
 
     @property
@@ -156,7 +160,6 @@ class BodyUsersRegister(Model):
         """
         if phone_number is None:
             raise ValueError("Invalid value for `phone_number`, must not be `None`")  # noqa: E501
-        if phone_number is not None and not re.search(r'^\d{10}$', phone_number):  # noqa: E501
-            raise ValueError("Invalid value for `phone_number`, must be a follow pattern or equal to `/^\d{10}$/`")  # noqa: E501
-
+        
+        format.enforce_phone_number(phone_number)
         self._phone_number = phone_number

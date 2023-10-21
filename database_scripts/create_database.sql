@@ -8,7 +8,7 @@ CREATE TABLE `UniBar`.`Users` (
     `email` VARCHAR(32) NOT NULL,
     `registered_time` DATETIME NOT NULL,
     `delivery_tokens` INT NOT NULL,
-    `phone_number` INT NOT NULL,
+    `phone_number` VARCHAR(24) NOT NULL,
     `etransfer_email` VARCHAR(32),
 
     PRIMARY KEY (`user_id`),
