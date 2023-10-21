@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+import datetime
 
 # Setup logging
 logging.basicConfig(
@@ -9,5 +9,5 @@ logging.basicConfig(
 )
 
 log = logging.getLogger()
-fh = logging.FileHandler(f"unibar_server_{datetime.now()}.log")
+fh = logging.FileHandler(f"unibar_server_{datetime.datetime.now()}.log")
 log.addHandler(fh)
