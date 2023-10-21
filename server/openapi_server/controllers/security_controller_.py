@@ -8,7 +8,7 @@ log = logging.getLogger()
 
 # For better authenticating users and admins
 class AuthInstance(object):
-    def __init__(self, type, id) -> None:
+    def __init__(self, type: str, id: str) -> None:
         # Sanity check that everything's good
         if type != constants.AUTH_TYPE_ADMIN and type != constants.AUTH_TYPE_USER:
             raise Exception("Provided auth type for object is invalid.")
@@ -23,7 +23,7 @@ class AuthInstance(object):
     def id(self) -> str:
         return self._id
 
-def info_from_AdminAuth(api_key, required_scopes):
+def info_from_AdminAuth(api_key: str, required_scopes):
     """
     Check and retrieve authentication information from api_key.
     Returned value will be passed in 'token_info' parameter of your operation function, if there is one.
@@ -49,7 +49,7 @@ def info_from_AdminAuth(api_key, required_scopes):
         log.info(f"Successfully authenticated admin '{name}' ({admin_id}).")
         return {'sub': AuthInstance(type=constants.AUTH_TYPE_ADMIN, id=admin_id)}
 
-def info_from_UserAuth(api_key, required_scopes):
+def info_from_UserAuth(api_key: str, required_scopes):
     """
     Check and retrieve authentication information from api_key.
     Returned value will be passed in 'token_info' parameter of your operation function, if there is one.

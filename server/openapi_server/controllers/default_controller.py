@@ -326,7 +326,7 @@ def order_report_post(user: AuthInstance, body):  # noqa: E501
         return f"Successfully reported user {body.reported_id()}.", 200
         
 
-def order_create_post(user, body):  # noqa: E501
+def order_create_post(user: AuthInstance, body):  # noqa: E501
     """order_create_post
 
      # noqa: E501

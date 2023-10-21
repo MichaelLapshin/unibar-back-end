@@ -6,7 +6,7 @@ import uuid
 from openapi_server import typing_utils, constants
 
 def generate_uuid():
-    id = uuid.uuid4()
+    id = str(uuid.uuid4())
     if len(id) != constants.UUID_LENGTH:
         raise Exception(f"Bad UUID was generated: {id}")
     return id
