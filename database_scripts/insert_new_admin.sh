@@ -7,10 +7,10 @@ auth_token=$(openssl rand -hex 16) # 32 digit string
 registered_time=$(date '+%Y-%m-%d %H:%M:%S')
 
 # Database connectivity
-db_user=${$2:=$UNIBAR_RDS_USER}
-db_password=${$3:=$UNIBAR_RDS_USER}
-db_host=${$4:=$UNIBAR_RDS_USER}
-db_port=3306
+db_user=${$2:-$UNIBAR_RDS_USER}
+db_password=${$3:-$UNIBAR_RDS_PASSWORD}
+db_host=${$4:-$UNIBAR_RDS_HOSTNAME}
+db_port=${$5:-$UNIBAR_RDS_PORT}
 
 if [[ $# -eq 4 ]]; then
     echo "INSERT INTO UniBar.Admins (admin_id, name, auth_token, registered_time) VALUES \
@@ -25,5 +25,5 @@ if [[ $# -eq 4 ]]; then
     echo "======================="
     echo "Warning: Record the above information! Your admin token is important and will not be displayed again."
 else
-    echo "Invalid input. Use: './insert_new_admin <admin_name> <db_user> <db_password> <db_host>' OR ./insert_new_admin <admin_name>"
+    echo "Invalid input. Use: './insert_new_admin <admin_name> <db_user> <db_password> <db_host> <db_port>' OR ./insert_new_admin <admin_name>"
 fi
