@@ -379,7 +379,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
 
         # Create order
         cursor.execute(
-            "INSERT INTO Orders (order_id, orderer_id, creation_time, deadline_time, order, source, destination, payment_method) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO Orders (order_id, orderer_id, creation_time, deadline_time, `order`, source, destination, payment_method) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
             [
                 util.generate_uuid(),
                 user.user_id,
