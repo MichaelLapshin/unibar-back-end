@@ -1,7 +1,7 @@
 # Defines the server thread
 import threading
 import connexion
-import datetime
+from datetime import datetime, timezone
 from waitress import serve
 
 from openapi_server import encoder, server_attr
@@ -15,7 +15,7 @@ class ServerThread(threading.Thread):
 
     def run(self):
         # Launch the server
-        server_attr.start_time = datetime.datetime.now()
+        server_attr.start_time = datetime.now(timezone.utc)
         app = connexion.App(__name__, specification_dir='./openapi/')
         app.app.json_encoder = encoder.JSONEncoder
         app.add_api('openapi.yaml',

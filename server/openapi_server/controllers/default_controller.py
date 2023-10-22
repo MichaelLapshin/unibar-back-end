@@ -1,6 +1,6 @@
 import connexion
 import six
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import secrets
 from flask import session, make_response, request
 
@@ -132,7 +132,7 @@ def deployment_get():  # noqa: E501
     :rtype: str
     """
     return f"name: {server_attr.deployment_name}\n" + \
-        f"uptime: {datetime.now() - server_attr.start_time}", 200
+        f"uptime: {datetime.now(timezone.utc) - server_attr.start_time}", 200
 
 
 def message_post(body: dict):  # noqa: E501
@@ -154,7 +154,7 @@ def message_post(body: dict):  # noqa: E501
                 body.user_id,
                 body.email,
                 body.message,
-                datetime.now()
+                datetime.now(timezone.utc)
             ]
         )
         db.conn.commit()
@@ -183,7 +183,7 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
         # Transfer delivery token from orderer to deliverer
         cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens - 1 WHERE user_id = %s", [order.orderer_id])
         cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens + 1 WHERE user_id = %s", [order.deliverer_id])
-        cursor.execute("UPDATE Orders SET delivered_time = %s WHERE order_id = %s", [datetime.now(), order.order_id])
+        cursor.execute("UPDATE Orders SET delivered_time = %s WHERE order_id = %s", [datetime.now(timezone.utc), order.order_id])
         db.conn.commit()
 
         return f"Successfully marked order {order.order_id} as complete.", 200
@@ -212,7 +212,7 @@ def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
         # Cancel the order
         cursor.execute(
             "UPDATE Orders SET cancelled_time = %s WHERE order_id = %s",
-            [datetime.now(), body.order_id]
+            [datetime.now(timezone.utc), body.order_id]
         )
         db.conn.commit()
     
@@ -250,7 +250,7 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
         # Claim the order
         cursor.execute(
             "UPDATE Orders SET deliverer_id = %s, claimed_time = %s WHERE order_id = %s",
-            [user.id, datetime.now(), body.order_id]
+            [user.id, datetime.now(timezone.utc), body.order_id]
         )
         db.conn.commit()
     
@@ -341,7 +341,7 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
                 user.id,
                 body.reported_id,
                 body.order_id,
-                datetime.now(),
+                datetime.now(timezone.utc),
                 body.message
             ]
         )
@@ -365,7 +365,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
     assert user.type == constants.AUTH_TYPE_USER, "not a user"
     body = BodyOrderCreate.from_dict(body)  # noqa: E501
 
-    current_time = datetime.now()
+    current_time = datetime.now(timezone.utc)
 
     with db.conn.cursor() as cursor:
         cursor.execute( "SELECT * FROM Users WHERE user_id = %s", [user.id])
@@ -391,7 +391,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
         if body.deadline_time <= current_time:
             return "Deadline must be a later time.", 400
 
-        # Assert that the request is maximum for x-hours later.
+        # Assert that the request is at most x-hours later.
         if body.deadline_time > current_time + timedelta(hours=constants.ORDER_MAX_REQUEST_HOURS):
             return f"Deadline may be set to at most {constants.ORDER_MAX_REQUEST_HOURS}-hours later."
 
@@ -603,7 +603,7 @@ def users_register_post(body: dict):  # noqa: E501
                 body.password,
                 body.name,
                 body.email,
-                datetime.now(),
+                datetime.now(timezone.utc),
                 constants.NEW_USER_DELIVERY_TOKENS,
                 body.phone_number
             ]

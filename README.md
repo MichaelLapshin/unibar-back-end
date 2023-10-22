@@ -1,5 +1,8 @@
 # UniBar Back-End
 
+## Standards
+- UTC time is assumed to be the time format.
+
 ## Logging into AWS EC2
 Use the AWS console to access the EC2 instance an open a terminal session to it.
 

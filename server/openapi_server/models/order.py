@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from __future__ import absolute_import
-from datetime import datetime, timedelta  # noqa: F401
+from datetime import datetime, timedelta, timezone  # noqa: F401
 
 import logging
 from typing import List, Dict  # noqa: F401
@@ -387,7 +387,7 @@ def order_with_status(order: Order):
             but it is for ensuring accuracy of the status.
     """
     self = order
-    current_time = datetime.now()
+    current_time = datetime.now(timezone.utc)
 
     # Facts: delivered time is only set if
     # - the order was delivered.
