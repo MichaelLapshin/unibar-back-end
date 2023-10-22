@@ -169,7 +169,7 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
 
     :rtype: None
     """
-    assert user.type() == constants.AUTH_TYPE_USER, "requesting order complete by a non-user"
+    assert user.type == constants.AUTH_TYPE_USER, "requesting order complete by a non-user"
     body = BodyOrderComplete.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
@@ -198,7 +198,7 @@ def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
 
     :rtype: None
     """
-    assert user.type() == constants.AUTH_TYPE_USER
+    assert user.type == constants.AUTH_TYPE_USER
     body = BodyOrderCancel.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
@@ -228,7 +228,7 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
 
     :rtype: None
     """
-    assert user.type() == constants.AUTH_TYPE_USER
+    assert user.type == constants.AUTH_TYPE_USER
     body = BodyOrderClaim.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
@@ -379,7 +379,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
         user = User.from_dict(cursor.fetchone())
         assert user, f"did not find user with ID {user.id}"
 
-        if user.delivery_tokens() <= len(active_orders):
+        if user.delivery_tokens <= len(active_orders):
             return "Not enough delivery tokens.", 406
 
         # Create order
