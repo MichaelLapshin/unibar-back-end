@@ -24,6 +24,7 @@ from openapi_server import util, server_attr, constants
 from openapi_server.logger import log
 from openapi_server.database.db_rds import db
 from openapi_server.controllers.security_controller_ import AuthInstance
+from openapi_server.server import server_thread
 
 def admin_login_post(body: dict):  # noqa: E501
     """admin_login_post
@@ -119,7 +120,7 @@ def shutdown_get():
     :rtype: None
     """
     log.info("Received shutdown command. Exiting the server.")
-    sys.exit(0)
+    server_thread.kill()
     return "Successfully shut down the server.", 200
 
 def deployment_get():  # noqa: E501
