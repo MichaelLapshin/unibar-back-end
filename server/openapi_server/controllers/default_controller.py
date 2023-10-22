@@ -365,11 +365,11 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user.id])
         results = cursor.fetchall()
         orders = [Order.from_dict(res) for res in results]
-        active_orders = filter(
+        active_orders = list(filter(
             lambda o: o.orderer_id == user.id and \
                 (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE),
             orders
-        )
+        ))
 
         # Check if user has tokens to use on the delivery
         cursor.execute(
@@ -415,7 +415,7 @@ def orders_available_get():  # noqa: E501
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
         orders = [Order.from_dict(res) for res in results]
-        available_orders = filter(lambda o: o.status == Order.STATUS_AVAILABLE, orders)
+        available_orders = list(filter(lambda o: o.status == Order.STATUS_AVAILABLE, orders))
         return available_orders, 200
 
 
@@ -465,7 +465,7 @@ def user_user_id_orders_claimed_get(user_id):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE deliverer_id = %s", [user_id])
         results = cursor.fetchall()
         orders = [Order.from_dict(res) for res in results]
-        claimed_orders = filter(lambda o: o.status == Order.STATUS_CLAIMED and o.deliverer_id == user_id, orders)
+        claimed_orders = list(filter(lambda o: o.status == Order.STATUS_CLAIMED and o.deliverer_id == user_id, orders))
         return claimed_orders, 200
 
 
@@ -485,11 +485,11 @@ def user_user_id_orders_active_get(user_id):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user_id])
         results = cursor.fetchall()
         orders = [Order.from_dict(res) for res in results]
-        active_orders = filter(
+        active_orders = list(filter(
             lambda o: o.orderer_id == user_id and \
                 (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE),
             orders
-        )
+        ))
         return active_orders, 200
 
 
