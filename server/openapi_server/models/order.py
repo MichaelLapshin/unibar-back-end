@@ -21,7 +21,7 @@ class Order(Model):
     STATUS_CANCELLED = "cancelled"
     STATUS_EXPIRED = "expired"
 
-    def __init__(self, order_id=None, orderer_id=None, deliverer_id=None, creation_time=None, deadline_time=None, claimed_time=None, delivered_time=None, order=None, source=None, destination=None, payment_method=None, status=None):  # noqa: E501
+    def __init__(self, order_id=None, orderer_id=None, deliverer_id=None, creation_time=None, deadline_time=None, claimed_time=None, delivered_time=None, cancelled_time=None, order=None, source=None, destination=None, payment_method=None, status=None):  # noqa: E501
         """Order - a model defined in OpenAPI
 
         :param order_id: The order_id of this Order.  # noqa: E501
@@ -57,6 +57,7 @@ class Order(Model):
             'deadline_time': datetime,
             'claimed_time': datetime,
             'delivered_time': datetime,
+            'cancelled_time': datetime,
             'order': str,
             'source': str,
             'destination': str,
@@ -72,6 +73,7 @@ class Order(Model):
             'deadline_time': 'deadline_time',
             'claimed_time': 'claimed_time',
             'delivered_time': 'delivered_time',
+            'cancelled_time': 'cancelled_time',
             'order': 'order',
             'source': 'source',
             'destination': 'destination',
@@ -86,6 +88,7 @@ class Order(Model):
         self._deadline_time = deadline_time
         self._claimed_time = claimed_time
         self._delivered_time = delivered_time
+        self._cancelled_time = cancelled_time
         self._order = order
         self._source = source
         self._destination = destination
@@ -329,6 +332,28 @@ class Order(Model):
         """
 
         self._delivered_time = delivered_time
+        self._compute_status()
+
+    @property
+    def cancelled_time(self):
+        """Gets the cancelled_time of this Order.
+
+
+        :return: The cancelled_time of this Order.
+        :rtype: datetime
+        """
+        return self._cancelled_time
+
+    @cancelled_time.setter
+    def cancelled_time(self, cancelled_time):
+        """Sets the cancelled_time of this Order.
+
+
+        :param cancelled_time: The cancelled_time of this Order.
+        :type cancelled_time: datetime
+        """
+
+        self._cancelled_time = cancelled_time
         self._compute_status()
 
     @property

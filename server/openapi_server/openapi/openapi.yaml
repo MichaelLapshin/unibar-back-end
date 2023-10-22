@@ -762,6 +762,7 @@ components:
         deliverer_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         orderer_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         delivered_time: 2000-01-23T04:56:07.000+00:00
+        cancelled_time: 2000-01-20T04:56:07.000+00:00
         destination: destination
         deadline_time: 2000-01-23T04:56:07.000+00:00
         source: source
@@ -793,6 +794,9 @@ components:
           format: date-time
           type: string
         delivered_time:
+          format: date-time
+          type: string
+        cancelled_time:
           format: date-time
           type: string
         order:

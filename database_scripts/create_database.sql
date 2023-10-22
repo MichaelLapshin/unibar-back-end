@@ -35,6 +35,7 @@ CREATE TABLE `UniBar`.`Orders` (
     `deadline_time` DATETIME NOT NULL,
     `claimed_time` DATETIME,
     `delivered_time` DATETIME,
+    `cancelled_time` DATETIME,
 
     `order` varchar(250) NOT NULL,
     `source` varchar(250) NOT NULL,

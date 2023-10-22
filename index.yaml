@@ -608,6 +608,9 @@ components:
         delivered_time:
           type: string
           format: date-time
+        cancelled_time:
+          type: string
+          format: date-time
         order:
           type: string
         source:
