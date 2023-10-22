@@ -146,7 +146,7 @@ paths:
     patch:
       security:
         - UserAuth: []
-        - AdminAuth: []
+        - AdminAuth: [] # TODO: not working
       requestBody:
         description: Information about the user to change. For changing the user's name, password, phone_number, and etransfer_email.
         required: true
