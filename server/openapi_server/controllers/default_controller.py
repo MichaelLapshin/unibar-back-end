@@ -488,8 +488,8 @@ def user_user_id_orders_active_get(user_id):  # noqa: E501
         return orders, 200
 
 
-def user_user_id_update_put(user: AuthInstance, user_id, body: dict):  # noqa: E501
-    """user_user_id_update_put
+def user_user_id_update_patch(user: AuthInstance, user_id, body: dict):  # noqa: E501
+    """user_user_id_update_patch
 
      # noqa: E501
 

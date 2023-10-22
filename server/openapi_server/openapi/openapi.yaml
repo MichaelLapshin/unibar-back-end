@@ -477,8 +477,8 @@ paths:
       x-openapi-router-controller: openapi_server.controllers.default_controller
     summary: Fetch the user's active orders that they are requesting.
   /user/{user_id}/update:
-    put:
-      operationId: user_user_id_update_put
+    patch:
+      operationId: user_user_id_update_patch
       parameters:
       - description: User ID of user we are trying to update.
         explode: false
