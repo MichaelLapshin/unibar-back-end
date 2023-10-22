@@ -79,7 +79,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/Order'
+                  $ref: '#/components/schemas/Report'
                 type: array
           description: Succesfully fetched all reports.
         "400":
@@ -284,12 +284,25 @@ paths:
         content:
           application/json:
             schema:
-              properties:
-                order:
-                  $ref: '#/components/schemas/Order'
-              required:
-              - order
               type: object
+              required:
+              - deadline_time
+              - order
+              - source
+              - destination
+              - payment_method
+              properties:
+                deadline_time:
+                  type: string
+                  format: date-time
+                order:
+                  type: string
+                source:
+                  type: string
+                destination:
+                  type: string
+                payment_method:
+                  $ref: "#/components/schemas/PaymentMethod"
         description: Delivery request order which the user wishes to create.
         required: true
       responses:
@@ -737,6 +750,11 @@ components:
       description: Identification of the order.
       format: uuid
       type: string
+    PaymentMethod:
+      enum:
+      - cash
+      - etransfer
+      type: string
     Order:
       description: Content of the order.
       example:
@@ -784,10 +802,7 @@ components:
         destination:
           type: string
         payment_method:
-          enum:
-          - cash
-          - etransfer
-          type: string
+          $ref: "#/components/schemas/PaymentMethod"
         status:
           enum:
           - available

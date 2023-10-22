@@ -48,6 +48,7 @@ Class | Method | HTTP request | Description
  - [BodyUsersRegister](.//Models/BodyUsersRegister.md)
  - [Message](.//Models/Message.md)
  - [Order](.//Models/Order.md)
+ - [PaymentMethod](.//Models/PaymentMethod.md)
  - [Report](.//Models/Report.md)
  - [User](.//Models/User.md)
 

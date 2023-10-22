@@ -109,7 +109,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**List**](..//Models/Order.md)
+[**List**](..//Models/Report.md)
 
 ### Authorization
 
