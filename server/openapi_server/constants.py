@@ -2,6 +2,7 @@
 
 NEW_USER_DELIVERY_TOKENS = 1
 UUID_LENGTH = 36
+ORDER_MAX_REQUEST_HOURS = 12
 
 # Authentication info
 '''
