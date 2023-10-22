@@ -1,7 +1,7 @@
 import connexion
 import six
 import datetime
-import sys
+import secrets
 from flask import session, make_response, request
 
 from openapi_server.models.body_message import BodyMessage
@@ -548,6 +548,15 @@ def users_login_post(body: dict):  # noqa: E501
         user_id = row["user_id"]
         name = row["name"]
         auth_token = row["auth_token"]
+
+        # Generate new auth token if does not exist
+        if auth_token is None:
+            auth_token = secrets.token_hex(32)
+            cursor.execute(
+                "UPDATE Users SET auth_token = %s WHERE user_id = %s",
+                [auth_token, user_id]
+            )
+            db.conn.commit()
 
         # Set cookie and return the response
         log.info(f"Succesfully logged in user '{name}' ({user_id}).")
