@@ -1,7 +1,7 @@
 import connexion
 import six
 import datetime
-import secrets
+import sys
 from flask import session, make_response, request
 
 from openapi_server.models.body_message import BodyMessage
@@ -118,10 +118,8 @@ def shutdown_get():
 
     :rtype: None
     """
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
+    log.info("Received shutdown command. Exiting the server.")
+    sys.exit(0)
     return "Successfully shut down the server.", 200
 
 def deployment_get():  # noqa: E501
