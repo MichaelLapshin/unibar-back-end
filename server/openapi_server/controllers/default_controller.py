@@ -270,8 +270,8 @@ def order_unclaim_put(user: AuthInstance, body: dict):
         )
         order = Order.from_dict(cursor.fetchone())
         assert order, f"did not find order with ID {body.order_id}"
-        assert order.deliverer_id() == user.id(), "Cannot undeliver an order not deliverying."
-        assert order.status() == Order.STATUS_CLAIMED, "Cannot undeliver an unclaimed order."
+        assert order.deliverer_id == user.id, "Cannot undeliver an order not deliverying."
+        assert order.status == Order.STATUS_CLAIMED, "Cannot undeliver an unclaimed order."
 
         # Update the order to nullify the deliverer column
         cursor.execute(
@@ -366,7 +366,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
         results = cursor.fetchall()
         orders = filter(
             lambda o: o.orderer_id == user.id and \
-                (o.status() == Order.STATUS_CLAIMED or o.status() == Order.STATUS_AVAILABLE),
+                (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE),
             [Order.from_dict(res) for res in results]
         )
 
@@ -467,7 +467,7 @@ def user_user_id_orders_claimed_get(user_id):  # noqa: E501
         results = cursor.fetchall()
         orders = filter(
             [Order.from_dict(res) for res in results], 
-            lambda o: o.status == Order.STATUS_CLAIMED and o.deliverer_id() == user_id
+            lambda o: o.status == Order.STATUS_CLAIMED and o.deliverer_id == user_id
         )
         return orders, 200
 
