@@ -26,4 +26,7 @@ class ServerThread(threading.Thread):
         # Securely run the server
         serve(app, host="0.0.0.0", port=80)
 
+    def stop(self):
+        self._stop()
+
 server_thread = ServerThread()
