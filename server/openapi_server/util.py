@@ -2,8 +2,14 @@ import datetime
 
 import six
 import typing
-from openapi_server import typing_utils
+import uuid
+from openapi_server import typing_utils, constants
 
+def generate_uuid():
+    id = str(uuid.uuid4())
+    if len(id) != constants.UUID_LENGTH:
+        raise Exception(f"Bad UUID was generated: {id}")
+    return id
 
 def _deserialize(data, klass):
     """Deserializes dict, list, str into an object.
@@ -74,7 +80,7 @@ def deserialize_date(string):
         return string
 
 
-def deserialize_datetime(string):
+def deserialize_datetime(des_datetime):
     """Deserializes string to datetime.
 
     The string should be in iso8601 datetime format.
@@ -84,11 +90,14 @@ def deserialize_datetime(string):
     :return: datetime.
     :rtype: datetime
     """
+    if type(des_datetime) == datetime.datetime:
+        return des_datetime
+    
     try:
         from dateutil.parser import parse
-        return parse(string)
+        return parse(des_datetime)
     except ImportError:
-        return string
+        return des_datetime
 
 
 def deserialize_model(data, klass):

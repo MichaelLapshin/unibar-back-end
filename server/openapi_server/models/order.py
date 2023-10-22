@@ -1,12 +1,13 @@
 # coding: utf-8
 
 from __future__ import absolute_import
-from datetime import date, datetime  # noqa: F401
+from datetime import datetime, timedelta, timezone  # noqa: F401
 
+import logging
 from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model_ import Model
-from openapi_server import util
+from openapi_server import util, constants
 
 
 class Order(Model):
@@ -14,8 +15,13 @@ class Order(Model):
 
     Do not edit the class manually.
     """
+    STATUS_AVAILABLE = "available"
+    STATUS_CLAIMED = "claimed"
+    STATUS_DELIVERED = "delivered"
+    STATUS_CANCELLED = "cancelled"
+    STATUS_EXPIRED = "expired"
 
-    def __init__(self, order_id=None, orderer_id=None, deliverer_id=None, creation_time=None, deadline_time=None, claimed_time=None, delivered_time=None, order=None, source=None, destination=None, payment_method=None, status=None):  # noqa: E501
+    def __init__(self, order_id=None, orderer_id=None, deliverer_id=None, creation_time=None, deadline_time=None, claimed_time=None, delivered_time=None, cancelled_time=None, order=None, source=None, destination=None, payment_method=None, status=None):  # noqa: E501
         """Order - a model defined in OpenAPI
 
         :param order_id: The order_id of this Order.  # noqa: E501
@@ -25,13 +31,13 @@ class Order(Model):
         :param deliverer_id: The deliverer_id of this Order.  # noqa: E501
         :type deliverer_id: str
         :param creation_time: The creation_time of this Order.  # noqa: E501
-        :type creation_time: str
+        :type creation_time: datetime
         :param deadline_time: The deadline_time of this Order.  # noqa: E501
-        :type deadline_time: str
+        :type deadline_time: datetime
         :param claimed_time: The claimed_time of this Order.  # noqa: E501
-        :type claimed_time: str
+        :type claimed_time: datetime
         :param delivered_time: The delivered_time of this Order.  # noqa: E501
-        :type delivered_time: str
+        :type delivered_time: datetime
         :param order: The order of this Order.  # noqa: E501
         :type order: str
         :param source: The source of this Order.  # noqa: E501
@@ -47,10 +53,11 @@ class Order(Model):
             'order_id': str,
             'orderer_id': str,
             'deliverer_id': str,
-            'creation_time': str,
-            'deadline_time': str,
-            'claimed_time': str,
-            'delivered_time': str,
+            'creation_time': datetime,
+            'deadline_time': datetime,
+            'claimed_time': datetime,
+            'delivered_time': datetime,
+            'cancelled_time': datetime,
             'order': str,
             'source': str,
             'destination': str,
@@ -66,6 +73,7 @@ class Order(Model):
             'deadline_time': 'deadline_time',
             'claimed_time': 'claimed_time',
             'delivered_time': 'delivered_time',
+            'cancelled_time': 'cancelled_time',
             'order': 'order',
             'source': 'source',
             'destination': 'destination',
@@ -76,15 +84,15 @@ class Order(Model):
         self._order_id = order_id
         self._orderer_id = orderer_id
         self._deliverer_id = deliverer_id
-        self._creation_time = creation_time
-        self._deadline_time = deadline_time
-        self._claimed_time = claimed_time
-        self._delivered_time = delivered_time
+        self._creation_time = creation_time.replace(tzinfo=timezone.utc) if creation_time is not None else None
+        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if deadline_time is not None else None
+        self._claimed_time = claimed_time.replace(tzinfo=timezone.utc) if claimed_time is not None else None
+        self._delivered_time = delivered_time.replace(tzinfo=timezone.utc) if delivered_time is not None else None
+        self._cancelled_time = cancelled_time.replace(tzinfo=timezone.utc) if cancelled_time is not None else None
         self._order = order
         self._source = source
         self._destination = destination
         self._payment_method = payment_method
-        self._status = status
 
     @classmethod
     def from_dict(cls, dikt) -> 'Order':
@@ -142,7 +150,7 @@ class Order(Model):
         """
 
         self._orderer_id = orderer_id
-
+    
     @property
     def deliverer_id(self):
         """Gets the deliverer_id of this Order.
@@ -172,7 +180,7 @@ class Order(Model):
 
 
         :return: The creation_time of this Order.
-        :rtype: str
+        :rtype: datetime
         """
         return self._creation_time
 
@@ -182,10 +190,10 @@ class Order(Model):
 
 
         :param creation_time: The creation_time of this Order.
-        :type creation_time: str
+        :type creation_time: datetime
         """
 
-        self._creation_time = creation_time
+        self._creation_time = creation_time.replace(tzinfo=timezone.utc) if creation_time is not None else None
 
     @property
     def deadline_time(self):
@@ -193,7 +201,7 @@ class Order(Model):
 
 
         :return: The deadline_time of this Order.
-        :rtype: str
+        :rtype: datetime
         """
         return self._deadline_time
 
@@ -203,10 +211,10 @@ class Order(Model):
 
 
         :param deadline_time: The deadline_time of this Order.
-        :type deadline_time: str
+        :type deadline_time: datetime
         """
 
-        self._deadline_time = deadline_time
+        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if deadline_time is not None else None
 
     @property
     def claimed_time(self):
@@ -214,7 +222,7 @@ class Order(Model):
 
 
         :return: The claimed_time of this Order.
-        :rtype: str
+        :rtype: datetime
         """
         return self._claimed_time
 
@@ -224,10 +232,10 @@ class Order(Model):
 
 
         :param claimed_time: The claimed_time of this Order.
-        :type claimed_time: str
+        :type claimed_time: datetime
         """
 
-        self._claimed_time = claimed_time
+        self._claimed_time = claimed_time.replace(tzinfo=timezone.utc) if claimed_time is not None else None
 
     @property
     def delivered_time(self):
@@ -235,7 +243,7 @@ class Order(Model):
 
 
         :return: The delivered_time of this Order.
-        :rtype: str
+        :rtype: datetime
         """
         return self._delivered_time
 
@@ -245,10 +253,31 @@ class Order(Model):
 
 
         :param delivered_time: The delivered_time of this Order.
-        :type delivered_time: str
+        :type delivered_time: datetime
         """
 
-        self._delivered_time = delivered_time
+        self._delivered_time = delivered_time.replace(tzinfo=timezone.utc) if delivered_time is not None else None
+
+    @property
+    def cancelled_time(self):
+        """Gets the cancelled_time of this Order.
+
+
+        :return: The cancelled_time of this Order.
+        :rtype: datetime
+        """
+        return self._cancelled_time
+
+    @cancelled_time.setter
+    def cancelled_time(self, cancelled_time):
+        """Sets the cancelled_time of this Order.
+
+
+        :param cancelled_time: The cancelled_time of this Order.
+        :type cancelled_time: datetime
+        """
+
+        self._cancelled_time = cancelled_time.replace(tzinfo=timezone.utc) if cancelled_time is not None else None
 
     @property
     def order(self):
@@ -350,19 +379,73 @@ class Order(Model):
         """
         return self._status
 
-    @status.setter
-    def status(self, status):
-        """Sets the status of this Order.
+# Function for computing the status of the order
+def order_with_status(order: Order):
+    """Compute the status of the order
+    
+        Note: the following if-statements may have redundant conditions,
+            but it is for ensuring accuracy of the status.
+    """
+    self = order
+    current_time = datetime.now(timezone.utc)
 
+    # Facts: delivered time is only set if
+    # - the order was delivered.
+    # (other conditions don't matter since the order was delivered)
+    if self._delivered_time != None:
+        self._status = Order.STATUS_DELIVERED
+        return self
 
-        :param status: The status of this Order.
-        :type status: str
-        """
-        allowed_values = ["available", "claimed", "delivered", "cancelled"]  # noqa: E501
-        if status not in allowed_values:
-            raise ValueError(
-                "Invalid value for `status` ({0}), must be one of {1}"
-                .format(status, allowed_values)
-            )
+    # Facts: an ordered has been cancelled if
+    # - order has been cancelled (cancelled_time != NULL)
+    # - order has not been delivered (delivered_time = NULL)
+    # (ignore other fields as deliverer, creation, and deadline don't matter)
+    if self._cancelled_time != None and self._delivered_time == None:
+        self._status = Order.STATUS_CANCELLED
+        return self
 
-        self._status = status
+    # Facts: an order is claimed if
+    # - order has been created (creation_time <= time.now())
+    # - order has not been delivered (delivered_time = NULL)
+    # - order is claimed by someone (deliverer != NULL && claimed_time != NULL)
+    # - order has not been cancelled (cancelled_time = NULL)
+    # - delivery time has not reached its hard-deadline (current_time <= deadline_time + max_deliverer_time)
+    # (order can expire, as long as someone is currently delivering it)
+    if self._creation_time <= current_time and \
+            self._delivered_time == None and \
+            self._deliverer_id != None and self._claimed_time != None and \
+            self._cancelled_time == None and \
+            current_time <= self._deadline_time + timedelta(minutes=constants.ORDER_MAX_DELIVERY_MINUTES):
+        self._status = Order.STATUS_CLAIMED
+        return self
+
+    # Facts: an order is available if
+    # - order has been created (creation_time <= time.now())
+    # - order did not expire (deadline_time > time.now())
+    # - order is not being delivered (deliverer_id = NULL && claimed_time = NULL)
+    # - order is was not delivered (delivered_time = NULL)
+    # - order has not been cancelled (cancelled_time = NULL)
+    if self._creation_time <= current_time and \
+            self._deadline_time > current_time and \
+            self._deliverer_id == None and self._claimed_time == None and \
+            self._delivered_time == None and \
+            self._cancelled_time == None:
+        self._status = Order.STATUS_AVAILABLE
+        return self
+
+    # Facts: an order is expired if
+    # - order has expired (deadline_time <= time.now())
+    # - order is active (creation_time <= time.now())
+    # - order has not been cancelled (cancelled_time = NULL)
+    # - order has not been delivered (delivered = NULL)
+    # - (INVALID FACT) order is not currently being delivered (deliverer_id = NULL && claimed_time = NULL)
+    if self._deadline_time <= current_time and \
+            self._creation_time <= current_time and \
+            self._cancelled_time == None and \
+            self._delivered_time == None:
+            # self._deliverer_id == None and self._claimed_time == None:
+        self._status = Order.STATUS_EXPIRED
+        return self
+
+    logging.error("failed to compute order status")
+    raise Exception("invalid order status")

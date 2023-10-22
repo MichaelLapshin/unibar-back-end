@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 
-import connexion
+import os
 
-from openapi_server import encoder
-
+from openapi_server.server import server_thread
+from openapi_server.logger import log
+from openapi_server.database.db_rds import db
 
 def main():
-    app = connexion.App(__name__, specification_dir='./openapi/')
-    app.app.json_encoder = encoder.JSONEncoder
-    app.add_api('openapi.yaml',
-                arguments={'title': 'UniBar API'},
-                pythonic_params=True)
-    app.run(port=8080)
+    # Save the PID into a file
+    log.info("PID: %s", os.getpid())
+    with open('latest_deployment_pid.txt', 'w') as f:
+        f.write(str(os.getpid()))
 
+    # Start the server
+    db.connect()
+    server_thread.start()
+    server_thread.join()
+    db.close()
 
 if __name__ == '__main__':
     main()

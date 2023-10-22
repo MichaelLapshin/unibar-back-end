@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from __future__ import absolute_import
-from datetime import date, datetime  # noqa: F401
+from datetime import datetime, timezone  # noqa: F401
 
 from typing import List, Dict  # noqa: F401
 
@@ -27,7 +27,7 @@ class Report(Model):
         :param order_id: The order_id of this Report.  # noqa: E501
         :type order_id: str
         :param time: The time of this Report.  # noqa: E501
-        :type time: str
+        :type time: datetime
         :param message: The message of this Report.  # noqa: E501
         :type message: str
         :param conclusion: The conclusion of this Report.  # noqa: E501
@@ -38,7 +38,7 @@ class Report(Model):
             'reporter_user_id': str,
             'reported_user_id': str,
             'order_id': str,
-            'time': str,
+            'time': datetime,
             'message': str,
             'conclusion': str
         }
@@ -57,7 +57,7 @@ class Report(Model):
         self._reporter_user_id = reporter_user_id
         self._reported_user_id = reported_user_id
         self._order_id = order_id
-        self._time = time
+        self._time = time.replace(tzinfo=timezone.utc) if time is not None else None
         self._message = message
         self._conclusion = conclusion
 
@@ -168,7 +168,7 @@ class Report(Model):
 
 
         :return: The time of this Report.
-        :rtype: str
+        :rtype: datetime
         """
         return self._time
 
@@ -178,10 +178,10 @@ class Report(Model):
 
 
         :param time: The time of this Report.
-        :type time: str
+        :type time: datetime
         """
 
-        self._time = time
+        self._time = time.replace(tzinfo=timezone.utc) if time is not None else None
 
     @property
     def message(self):

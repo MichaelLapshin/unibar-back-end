@@ -1,13 +1,13 @@
 # coding: utf-8
 
 from __future__ import absolute_import
-from datetime import date, datetime  # noqa: F401
+from datetime import datetime, timezone  # noqa: F401
 
 from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model_ import Model
 import re
-from openapi_server import util
+from openapi_server import util, format
 
 import re  # noqa: E501
 
@@ -17,7 +17,7 @@ class User(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, user_id=None, name=None, email=None, phone_number=None, delivery_tokens=None):  # noqa: E501
+    def __init__(self, user_id=None, name=None, email=None, phone_number=None, registered_time=None, delivery_tokens=None, etransfer_email=None):  # noqa: E501
         """User - a model defined in OpenAPI
 
         :param user_id: The user_id of this User.  # noqa: E501
@@ -28,15 +28,21 @@ class User(Model):
         :type email: str
         :param phone_number: The phone_number of this User.  # noqa: E501
         :type phone_number: str
+        :param registered_time: The registered_time of this User.  # noqa: E501
+        :type registered_time: datetime
         :param delivery_tokens: The delivery_tokens of this User.  # noqa: E501
         :type delivery_tokens: int
+        :param etransfer_email: The etransfer_email of this User.  # noqa: E501
+        :type etransfer_email: str
         """
         self.openapi_types = {
             'user_id': str,
             'name': str,
             'email': str,
             'phone_number': str,
-            'delivery_tokens': int
+            'registered_time': datetime,
+            'delivery_tokens': int,
+            'etransfer_email': str
         }
 
         self.attribute_map = {
@@ -44,14 +50,20 @@ class User(Model):
             'name': 'name',
             'email': 'email',
             'phone_number': 'phone_number',
-            'delivery_tokens': 'delivery_tokens'
+            'registered_time': 'registered_time',
+            'delivery_tokens': 'delivery_tokens',
+            'etransfer_email': 'etransfer_email'
         }
+
+        format.enforce_phone_number(phone_number, ignoreNone=True)
 
         self._user_id = user_id
         self._name = name
         self._email = email
         self._phone_number = phone_number
+        self._registered_time = registered_time.replace(tzinfo=timezone.utc) if registered_time is not None else None
         self._delivery_tokens = delivery_tokens
+        self._etransfer_email = etransfer_email
 
     @classmethod
     def from_dict(cls, dikt) -> 'User':
@@ -153,10 +165,29 @@ class User(Model):
         :param phone_number: The phone_number of this User.
         :type phone_number: str
         """
-        if phone_number is not None and not re.search(r'^\d{10}$', phone_number):  # noqa: E501
-            raise ValueError("Invalid value for `phone_number`, must be a follow pattern or equal to `/^\d{10}$/`")  # noqa: E501
-
+        format.enforce_phone_number(phone_number, ignoreNone=True)
         self._phone_number = phone_number
+
+    @property
+    def registered_time(self):
+        """Gets the registered_time of this User.
+
+
+        :return: The registered_time of this User.
+        :rtype: datetime
+        """
+        return self._registered_time
+
+    @registered_time.setter
+    def registered_time(self, registered_time):
+        """Sets the registered_time of this User.
+
+
+        :param registered_time: The registered_time of this User.
+        :type registered_time: datetime
+        """
+
+        self._registered_time = registered_time.replace(tzinfo=timezone.utc) if registered_time is not None else None
 
     @property
     def delivery_tokens(self):
@@ -180,3 +211,26 @@ class User(Model):
         """
 
         self._delivery_tokens = delivery_tokens
+
+    @property
+    def etransfer_email(self):
+        """Gets the etransfer_email of this User.
+
+        Email format.  # noqa: E501
+
+        :return: The etransfer_email of this User.
+        :rtype: str
+        """
+        return self._etransfer_email
+
+    @etransfer_email.setter
+    def etransfer_email(self, etransfer_email):
+        """Sets the etransfer_email of this User.
+
+        Email format.  # noqa: E501
+
+        :param etransfer_email: The etransfer_email of this User.
+        :type etransfer_email: str
+        """
+
+        self._etransfer_email = etransfer_email
