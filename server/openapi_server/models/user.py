@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from __future__ import absolute_import
-from datetime import date, datetime  # noqa: F401
+from datetime import datetime, timezone  # noqa: F401
 
 from typing import List, Dict  # noqa: F401
 
@@ -61,7 +61,7 @@ class User(Model):
         self._name = name
         self._email = email
         self._phone_number = phone_number
-        self._registered_time = registered_time
+        self._registered_time = registered_time.replace(tzinfo=timezone.utc) if not None else None
         self._delivery_tokens = delivery_tokens
         self._etransfer_email = etransfer_email
 
@@ -187,7 +187,7 @@ class User(Model):
         :type registered_time: datetime
         """
 
-        self._registered_time = registered_time
+        self._registered_time = registered_time.replace(tzinfo=timezone.utc) if not None else None
 
     @property
     def delivery_tokens(self):

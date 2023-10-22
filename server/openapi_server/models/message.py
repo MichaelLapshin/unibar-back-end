@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from __future__ import absolute_import
-from datetime import date, datetime  # noqa: F401
+from datetime import datetime, timezone  # noqa: F401
 
 from typing import List, Dict  # noqa: F401
 
@@ -49,7 +49,7 @@ class Message(Model):
         self._user_id = user_id
         self._email = email
         self._message = message
-        self._time = time
+        self._time = time.replace(tzinfo=timezone.utc) if not None else None
 
     @classmethod
     def from_dict(cls, dikt) -> 'Message':
@@ -169,4 +169,4 @@ class Message(Model):
         :type time: datetime
         """
 
-        self._time = time
+        self._time = time.replace(tzinfo=timezone.utc) if not None else None

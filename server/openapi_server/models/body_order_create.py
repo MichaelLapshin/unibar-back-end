@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from __future__ import absolute_import
-from datetime import date, datetime  # noqa: F401
+from datetime import date, datetime, timezone  # noqa: F401
 
 from typing import List, Dict  # noqa: F401
 
@@ -47,7 +47,7 @@ class BodyOrderCreate(Model):
             'payment_method': 'payment_method'
         }
 
-        self._deadline_time = deadline_time
+        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if not None else None
         self._order = order
         self._source = source
         self._destination = destination
@@ -85,7 +85,7 @@ class BodyOrderCreate(Model):
         if deadline_time is None:
             raise ValueError("Invalid value for `deadline_time`, must not be `None`")  # noqa: E501
 
-        self._deadline_time = deadline_time
+        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if not None else None
 
     @property
     def order(self):
