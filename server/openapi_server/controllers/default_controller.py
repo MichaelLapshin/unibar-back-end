@@ -546,7 +546,9 @@ def users_login_post(body: dict):  # noqa: E501
 
         # Generate new auth token if does not exist
         if auth_token is None:
-            auth_token = secrets.token_hex(32)
+            auth_token = secrets.token_hex(16) # 32 chars
+            assert len(auth_token) == constants.AUTH_TOKEN_LENGTH
+            
             cursor.execute(
                 "UPDATE Users SET auth_token = %s WHERE user_id = %s",
                 [auth_token, user_id]
