@@ -213,6 +213,24 @@ paths:
       - UserAuth: []
       x-openapi-router-controller: openapi_server.controllers.default_controller
     summary: Indicate which order the user intends to fulfill.
+  /order/cancel:
+    put:
+      operationId: order_cancel_put
+      requestBody:
+        $ref: '#/components/requestBodies/body_order_cancel'
+        content:
+          application/json:
+            schema:
+              properties:
+                order_id:
+                  description: Identification of the order to cancel.
+                  format: uuid
+                  type: string
+              required:
+              - order_id
+              type: object
+        summary: Cancels a user's own AVAILABLE delivery request. Claimed requests cannot be cancelled.
+        required: true
   /order/report:
     post:
       operationId: order_report_post
@@ -615,6 +633,12 @@ components:
           schema:
             $ref: '#/components/schemas/body_order_claim'
       required: true
+    body_order_cancel:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/body_order_cancel'
+      required: true
     body_order_unclaim:
       content:
         application/json:
@@ -897,6 +921,15 @@ components:
       - order
       type: object
     body_order_claim:
+      properties:
+        order_id:
+          description: Identification of the order.
+          format: uuid
+          type: string
+      required:
+      - order_id
+      type: object
+    body_order_cancel:
       properties:
         order_id:
           description: Identification of the order.

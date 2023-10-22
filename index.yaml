@@ -282,6 +282,29 @@ paths:
         406:
           description: Not enough delivery tokens.
 
+  /order/cancel:
+    summary: Cancels a user's own AVAILABLE delivery request. Claimed requests cannot be deleted.
+    put:
+      security:
+        - UserAuth: []
+      requestBody:
+        description: User's own available order which they wish to cancel.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - order_id
+              properties:
+                order_id:
+                  $ref: "#/components/schemas/OrderID"
+      responses:
+        200:
+          description: Successfully cancelled the order.
+        400:
+          description: Failed to cancel the order.
+
   /order/claim:
     summary: Indicate which order the user intends to fulfill.
     put:

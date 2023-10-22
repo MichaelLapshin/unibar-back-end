@@ -10,6 +10,7 @@ from openapi_server.models.body_users_login import BodyUsersLogin
 from openapi_server.models.body_user_update import BodyUserUpdate
 from openapi_server.models.body_order_create import BodyOrderCreate
 from openapi_server.models.body_order_claim import BodyOrderClaim
+from openapi_server.models.body_order_cancel import BodyOrderCancel
 from openapi_server.models.body_order_unclaim import BodyOrderUnclaim
 from openapi_server.models.body_order_report import BodyOrderReport
 from openapi_server.models.body_order_complete import BodyOrderComplete
@@ -186,6 +187,34 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
 
         return f"Successfully marked order {order.order_id} as complete.", 200
 
+def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
+    """order_cancel_put
+
+     # noqa: E501
+
+    :param body: 
+    :type body: dict | bytes
+
+    :rtype: None
+    """
+    assert user.type() == constants.AUTH_TYPE_USER
+    body = BodyOrderCancel.from_dict(body)  # noqa: E501
+
+    with db.conn.cursor() as cursor:
+        # Check that the order is available
+        cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
+        order = Order.from_dict(cursor.fetchone())
+        assert order.orderer_id == user.id, "Users can only cancel their own orders."
+        assert order.status == Order.STATUS_AVAILABLE, "Only available delivery requests may be cancelled."
+
+        # Cancel the order
+        cursor.execute(
+            "UPDATE Orders SET cancelled_time = %s WHERE order_id = %s",
+            [datetime.datetime.now(), body.order_id]
+        )
+        db.conn.commit()
+    
+    return "Successfully cancelled the order.", 200
 
 def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
     """order_claim_put

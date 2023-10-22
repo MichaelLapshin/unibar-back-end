@@ -9,6 +9,7 @@ from openapi_server.models.body_users_login import BodyUsersLogin
 from openapi_server.models.body_user_update import BodyUserUpdate
 from openapi_server.models.body_order_create import BodyOrderCreate
 from openapi_server.models.body_order_claim import BodyOrderClaim
+from openapi_server.models.body_order_cancel import BodyOrderCancel
 from openapi_server.models.body_order_unclaim import BodyOrderUnclaim
 from openapi_server.models.body_order_report import BodyOrderReport
 from openapi_server.models.body_order_complete import BodyOrderComplete

@@ -12,6 +12,7 @@ from openapi_server.models.body_users_login import BodyUsersLogin  # noqa: E501
 from openapi_server.models.body_user_update import BodyUserUpdate  # noqa: E501
 from openapi_server.models.body_order_create import BodyOrderCreate  # noqa: E501
 from openapi_server.models.body_order_claim import BodyOrderClaim  # noqa: E501
+from openapi_server.models.body_order_cancel import BodyOrderCancel # noqa: E501
 from openapi_server.models.body_order_unclaim import BodyOrderUnclaim
 from openapi_server.models.body_order_report import BodyOrderReport  # noqa: E501
 from openapi_server.models.body_order_complete import BodyOrderComplete  # noqa: E501
