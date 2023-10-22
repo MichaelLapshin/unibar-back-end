@@ -228,7 +228,7 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
 
     :rtype: None
     """
-    assert user.type == constants.AUTH_TYPE_USER
+    assert user.type == constants.AUTH_TYPE_USER, "Only users can claim orders."
     body = BodyOrderClaim.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
@@ -236,8 +236,16 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
         order = order_with_status(Order.from_dict(cursor.fetchone()))
         assert order, f"did not find order with ID {body.order_id}"
-        assert order.status == Order.STATUS_AVAILABLE
+        assert order.status == Order.STATUS_AVAILABLE, "Users may only claim available orders."
         assert order.orderer_id != user.id, "Users cannot deliver to themselves."
+
+        # Check that the user has less than (limit) orders
+        cursor.execute("SELECT * FROM Orders WHERE deliverer_id = %s", user.id)
+        results = cursor.fetchall()
+        user_orders = [order_with_status(Order.from_dict(res)) for res in results]
+        user_claimed_orders = list(filter(lambda o: o.status == Order.STATUS_CLAIMED, user_orders))
+        if len(user_claimed_orders) >= constants.ORDER_MAX_CONCURRENT_CLAIM:
+            return f"User may claim at most {constants.ORDER_MAX_CONCURRENT_CLAIM} at any given time.", 400
 
         # Claim the order
         cursor.execute(

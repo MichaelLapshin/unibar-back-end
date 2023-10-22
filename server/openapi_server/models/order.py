@@ -1,13 +1,13 @@
 # coding: utf-8
 
 from __future__ import absolute_import
-from datetime import date, datetime  # noqa: F401
+from datetime import datetime, timedelta  # noqa: F401
 
 import logging
 from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model_ import Model
-from openapi_server import util
+from openapi_server import util, constants
 
 
 class Order(Model):
@@ -409,11 +409,13 @@ def order_with_status(order: Order):
     # - order has not been delivered (delivered_time = NULL)
     # - order is claimed by someone (deliverer != NULL && claimed_time != NULL)
     # - order has not been cancelled (cancelled_time = NULL)
+    # - delivery time has not reached its hard-deadline (current_time <= deadline_time + max_deliverer_time)
     # (order can expire, as long as someone is currently delivering it)
     if self._creation_time <= current_time and \
             self._delivered_time == None and \
             self._deliverer_id != None and self._claimed_time != None and \
-            self._cancelled_time == None:
+            self._cancelled_time == None and \
+            current_time <= self._deadline_time + timedelta(minutes=constants.ORDER_MAX_DELIVERY_MINUTES):
         self._status = Order.STATUS_CLAIMED
         return self
 
@@ -436,12 +438,12 @@ def order_with_status(order: Order):
     # - order is active (creation_time <= time.now())
     # - order has not been cancelled (cancelled_time = NULL)
     # - order has not been delivered (delivered = NULL)
-    # - order is not currently being delivered (deliverer_id = NULL && claimed_time = NULL)
+    # - (INVALID FACT) order is not currently being delivered (deliverer_id = NULL && claimed_time = NULL)
     if self._deadline_time <= current_time and \
             self._creation_time <= current_time and \
             self._cancelled_time == None and \
-            self._delivered_time == None and \
-            self._deliverer_id == None and self._claimed_time == None:
+            self._delivered_time == None:
+            # self._deliverer_id == None and self._claimed_time == None:
         self._status = Order.STATUS_EXPIRED
         return self
 
