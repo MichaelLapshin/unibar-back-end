@@ -101,7 +101,7 @@ class Order(Model):
                 but it is for ensuring accuracy of the status.
         """
 
-        current_time = datetime.datetime.now()
+        current_time = datetime.now()
 
         # Facts: delivered time is only set if
         # - the order was delivered.
