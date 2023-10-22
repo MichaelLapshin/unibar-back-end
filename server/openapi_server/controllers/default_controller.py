@@ -43,7 +43,8 @@ def admin_login_post(body: dict):  # noqa: E501
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT admin_id, name FROM Admins WHERE auth_token = %s", [body.admin_token])
         row = cursor.fetchone()
-        assert row, "admin with the provided api key does not exist"
+        if not row:
+            return "admin with the provided api key does not exist", 400
 
         admin_id = row["admin_id"]
         name = row["name"]
@@ -169,16 +170,20 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
 
     :rtype: None
     """
-    assert user.type == constants.AUTH_TYPE_USER, "requesting order complete by a non-user"
+    if user.type != constants.AUTH_TYPE_USER:
+        return "requesting order complete by a non-user", 400
     body = BodyOrderComplete.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
         # Check that the order is being delivered
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
         order = order_with_status(Order.from_dict(cursor.fetchone()))
-        assert order, f"did not find order with ID {body.order_id}"
-        assert order.status == Order.STATUS_CLAIMED, "Order must be first claimed to be complete."
-        assert order.orderer_id == user.id, "Only the orderer can mark the delivery as complete."
+        if not order:
+            return f"did not find order with ID {body.order_id}", 400
+        if order.status != Order.STATUS_CLAIMED:
+            return "Order must be first claimed to be complete.", 400
+        if order.orderer_id != user.id:
+            return "Only the orderer can mark the delivery as complete.", 400
 
         # Transfer delivery token from orderer to deliverer
         cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens - 1 WHERE user_id = %s", [order.orderer_id])
@@ -198,16 +203,20 @@ def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
 
     :rtype: None
     """
-    assert user.type == constants.AUTH_TYPE_USER
+    if user.type != constants.AUTH_TYPE_USER:
+        return "A non-user is attempting to cancel an order.", 400
     body = BodyOrderCancel.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
         order = order_with_status(Order.from_dict(cursor.fetchone()))
-        assert order, f"did not find order with ID {body.order_id}"
-        assert order.orderer_id == user.id, "Users can only cancel their own orders."
-        assert order.status == Order.STATUS_AVAILABLE, "Only available delivery requests may be cancelled."
+        if not order:
+            return f"did not find order with ID {body.order_id}", 400
+        if order.orderer_id != user.id:
+            return "Users can only cancel their own orders.", 400
+        if order.status != Order.STATUS_AVAILABLE:
+            return "Only available delivery requests may be cancelled.", 400
 
         # Cancel the order
         cursor.execute(
@@ -228,16 +237,20 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
 
     :rtype: None
     """
-    assert user.type == constants.AUTH_TYPE_USER, "Only users can claim orders."
+    if user.type != constants.AUTH_TYPE_USER:
+        return "Only users can claim orders.", 400
     body = BodyOrderClaim.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
         order = order_with_status(Order.from_dict(cursor.fetchone()))
-        assert order, f"did not find order with ID {body.order_id}"
-        assert order.status == Order.STATUS_AVAILABLE, "Users may only claim available orders."
-        assert order.orderer_id != user.id, "Users cannot deliver to themselves."
+        if not order:
+            return f"did not find order with ID {body.order_id}", 400
+        if order.status != Order.STATUS_AVAILABLE:
+            return "Users may only claim available orders.", 400
+        if order.orderer_id == user.id:
+            return "Users cannot deliver to themselves.", 400
 
         # Check that the user has less than (limit) orders
         cursor.execute("SELECT * FROM Orders WHERE deliverer_id = %s", user.id)
@@ -267,7 +280,8 @@ def order_unclaim_put(user: AuthInstance, body: dict):
 
     :rtype: None
     """
-    assert user.type == constants.AUTH_TYPE_USER
+    if user.type != constants.AUTH_TYPE_USER:
+        return "Only users can unclaim orders.", 400
     body = BodyOrderUnclaim.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
@@ -277,9 +291,12 @@ def order_unclaim_put(user: AuthInstance, body: dict):
             [body.order_id]
         )
         order = order_with_status(Order.from_dict(cursor.fetchone()))
-        assert order, f"did not find order with ID {body.order_id}"
-        assert order.deliverer_id == user.id, "Cannot undeliver an order not deliverying."
-        assert order.status == Order.STATUS_CLAIMED, "Cannot undeliver an unclaimed order."
+        if not order:
+            return f"did not find order with ID {body.order_id}", 400
+        if order.deliverer_id != user.id:
+            return "Cannot undeliver an order not deliverying.", 400
+        if order.status != Order.STATUS_CLAIMED:
+            return "Cannot undeliver an unclaimed order.", 400
 
         # Update the order to nullify the deliverer column
         cursor.execute(
@@ -308,7 +325,8 @@ def order_order_id_get(order_id):  # noqa: E501
             [order_id]
         )
         order = cursor.fetchone()
-        assert order, f"did not find order with ID {order_id}"
+        if not order:
+            return f"did not find order with ID {order_id}", 400
         return order_with_status(Order.from_dict(order)), 200
 
 def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
@@ -321,17 +339,19 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
 
     :rtype: None
     """
-    assert user.type == constants.AUTH_TYPE_USER, "not a user"
+    if user.type != constants.AUTH_TYPE_USER:
+        return "Only users may report.", 400
     body = BodyOrderReport.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
         # Validate that the reporter_user_id and reported_user_id are part of the order
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
         order = order_with_status(Order.from_dict(cursor.fetchone()))
-        assert order, f"did not find order with ID {body.order_id}"
-        assert (order.orderer_id == user.id and order.deliverer_id == body.reported_id) or \
-            (order.orderer_id == body.reported_id and order.deliverer_id == user.id), \
-            "User can only report the other in the context of the delivery order."
+        if not order:
+            return f"did not find order with ID {body.order_id}", 400
+        if not ((order.orderer_id == user.id and order.deliverer_id == body.reported_id) or \
+            (order.orderer_id == body.reported_id and order.deliverer_id == user.id)):
+            return "User can only report the other in the context of the delivery order.", 400
 
         # Create order
         cursor.execute(
@@ -370,7 +390,8 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
     with db.conn.cursor() as cursor:
         cursor.execute( "SELECT * FROM Users WHERE user_id = %s", [user.id])
         user = User.from_dict(cursor.fetchone()) # override auth user
-        assert user, f"did not find user with ID {user.user_id}"
+        if not user:
+            return f"did not find user with ID {user.user_id}", 400
 
         # Count number of active orders that user is requesting
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
@@ -458,7 +479,8 @@ def user_user_id_get(user_id):  # noqa: E501
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email FROM Users WHERE user_id = %s", [user_id])
         row = cursor.fetchone()
-        assert row, f"did not find user with id {user_id}"
+        if not row:
+            return f"did not find user with id {user_id}", 400
         return User.from_dict(row), 200
 
 
@@ -555,9 +577,11 @@ def users_login_post(body: dict):  # noqa: E501
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT user_id, name, auth_token, password FROM Users WHERE email = %s", [body.email])
         row = cursor.fetchone()
-        assert row, "user with the provided username does not exist"
+        if not row:
+            return "user with the provided username does not exist", 400
 
-        assert row["password"] == body.password, "invalid user credentials"
+        if row["password"] != body.password:
+            return "invalid user credentials", 400
         user_id = row["user_id"]
         name = row["name"]
         auth_token = row["auth_token"]
