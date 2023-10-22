@@ -93,77 +93,6 @@ class Order(Model):
         self._source = source
         self._destination = destination
         self._payment_method = payment_method
-        
-        # Determine the status of the order
-        self._compute_status()
-
-    def _compute_status(self):
-        """Compute the status of the order
-        
-            Note: the following if-statements may have redundant conditions,
-                but it is for ensuring accuracy of the status.
-        """
-
-        current_time = datetime.now()
-
-        # Facts: delivered time is only set if
-        # - the order was delivered.
-        # (other conditions don't matter since the order was delivered)
-        if self._delivered_time != None:
-            self._status = Order.STATUS_DELIVERED
-            return
-
-        # Facts: an ordered has been cancelled if
-        # - order has been cancelled (cancelled_time != NULL)
-        # - order has not been delivered (delivered_time = NULL)
-        # (ignore other fields as deliverer, creation, and deadline don't matter)
-        if self._cancelled_time != None and self._delivered_time == None:
-            self._status = Order.STATUS_CANCELLED
-            return
-
-        # Facts: an order is claimed if
-        # - order has been created (creation_time <= time.now())
-        # - order has not been delivered (delivered_time = NULL)
-        # - order is claimed by someone (deliverer != NULL && claimed_time != NULL)
-        # - order has not been cancelled (cancelled_time = NULL)
-        # (order can expire, as long as someone is currently delivering it)
-        if self._creation_time <= current_time and \
-                self._delivered_time == None and \
-                self._deliverer_id != None and self._claimed_time != None and \
-                self._cancelled_time == None:
-            self._status = Order.STATUS_CLAIMED
-            return
-
-        # Facts: an order is available if
-        # - order has been created (creation_time <= time.now())
-        # - order did not expire (deadline_time > time.now())
-        # - order is not being delivered (deliverer_id = NULL && claimed_time = NULL)
-        # - order is was not delivered (delivered_time = NULL)
-        # - order has not been cancelled (cancelled_time = NULL)
-        if self._creation_time <= current_time and \
-                self._deadline_time > current_time and \
-                self._deliverer_id == None and self._claimed_time == None and \
-                self._delivered_time == None and \
-                self._cancelled_time == None:
-            self._status = Order.STATUS_AVAILABLE
-            return
-
-        # Facts: an order is expired if
-        # - order has expired (deadline_time <= time.now())
-        # - order is active (creation_time <= time.now())
-        # - order has not been cancelled (cancelled_time = NULL)
-        # - order has not been delivered (delivered = NULL)
-        # - order is not currently being delivered (deliverer_id = NULL && claimed_time = NULL)
-        if self._deadline_time <= current_time and \
-                self._creation_time <= current_time and \
-                self._cancelled_time == None and \
-                self._delivered_time == None and \
-                self._deliverer_id == None and self._claimed_time == None:
-            self._status = Order.STATUS_EXPIRED
-            return
-
-        logging.error("failed to compute order status")
-        raise Exception("invalid order status")
 
     @classmethod
     def from_dict(cls, dikt) -> 'Order':
@@ -244,7 +173,6 @@ class Order(Model):
         """
 
         self._deliverer_id = deliverer_id
-        self._compute_status()
 
     @property
     def creation_time(self):
@@ -266,7 +194,6 @@ class Order(Model):
         """
 
         self._creation_time = creation_time
-        self._compute_status()
 
     @property
     def deadline_time(self):
@@ -288,7 +215,6 @@ class Order(Model):
         """
 
         self._deadline_time = deadline_time
-        self._compute_status()
 
     @property
     def claimed_time(self):
@@ -310,7 +236,6 @@ class Order(Model):
         """
 
         self._claimed_time = claimed_time
-        self._compute_status()
 
     @property
     def delivered_time(self):
@@ -332,7 +257,6 @@ class Order(Model):
         """
 
         self._delivered_time = delivered_time
-        self._compute_status()
 
     @property
     def cancelled_time(self):
@@ -354,7 +278,6 @@ class Order(Model):
         """
 
         self._cancelled_time = cancelled_time
-        self._compute_status()
 
     @property
     def order(self):
@@ -455,3 +378,72 @@ class Order(Model):
         :rtype: str
         """
         return self._status
+
+# Function for computing the status of the order
+def order_with_status(order: Order):
+    """Compute the status of the order
+    
+        Note: the following if-statements may have redundant conditions,
+            but it is for ensuring accuracy of the status.
+    """
+    self = order
+    current_time = datetime.now()
+
+    # Facts: delivered time is only set if
+    # - the order was delivered.
+    # (other conditions don't matter since the order was delivered)
+    if self._delivered_time != None:
+        self._status = Order.STATUS_DELIVERED
+        return self
+
+    # Facts: an ordered has been cancelled if
+    # - order has been cancelled (cancelled_time != NULL)
+    # - order has not been delivered (delivered_time = NULL)
+    # (ignore other fields as deliverer, creation, and deadline don't matter)
+    if self._cancelled_time != None and self._delivered_time == None:
+        self._status = Order.STATUS_CANCELLED
+        return self
+
+    # Facts: an order is claimed if
+    # - order has been created (creation_time <= time.now())
+    # - order has not been delivered (delivered_time = NULL)
+    # - order is claimed by someone (deliverer != NULL && claimed_time != NULL)
+    # - order has not been cancelled (cancelled_time = NULL)
+    # (order can expire, as long as someone is currently delivering it)
+    if self._creation_time <= current_time and \
+            self._delivered_time == None and \
+            self._deliverer_id != None and self._claimed_time != None and \
+            self._cancelled_time == None:
+        self._status = Order.STATUS_CLAIMED
+        return self
+
+    # Facts: an order is available if
+    # - order has been created (creation_time <= time.now())
+    # - order did not expire (deadline_time > time.now())
+    # - order is not being delivered (deliverer_id = NULL && claimed_time = NULL)
+    # - order is was not delivered (delivered_time = NULL)
+    # - order has not been cancelled (cancelled_time = NULL)
+    if self._creation_time <= current_time and \
+            self._deadline_time > current_time and \
+            self._deliverer_id == None and self._claimed_time == None and \
+            self._delivered_time == None and \
+            self._cancelled_time == None:
+        self._status = Order.STATUS_AVAILABLE
+        return self
+
+    # Facts: an order is expired if
+    # - order has expired (deadline_time <= time.now())
+    # - order is active (creation_time <= time.now())
+    # - order has not been cancelled (cancelled_time = NULL)
+    # - order has not been delivered (delivered = NULL)
+    # - order is not currently being delivered (deliverer_id = NULL && claimed_time = NULL)
+    if self._deadline_time <= current_time and \
+            self._creation_time <= current_time and \
+            self._cancelled_time == None and \
+            self._delivered_time == None and \
+            self._deliverer_id == None and self._claimed_time == None:
+        self._status = Order.STATUS_EXPIRED
+        return self
+
+    logging.error("failed to compute order status")
+    raise Exception("invalid order status")

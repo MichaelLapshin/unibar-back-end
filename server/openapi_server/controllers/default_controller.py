@@ -17,7 +17,7 @@ from openapi_server.models.body_order_complete import BodyOrderComplete
 from openapi_server.models.body_admin_login import BodyAdminLogin
 
 from openapi_server.models.message import Message  # noqa: E501
-from openapi_server.models.order import Order  # noqa: E501
+from openapi_server.models.order import Order, order_with_status  # noqa: E501
 from openapi_server.models.user import User  # noqa: E501
 from openapi_server.models.report import Report  # noqa: E501
 from openapi_server import util, server_attr, constants
@@ -81,7 +81,7 @@ def admin_orders_list_get():  # noqa: E501
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
-        orders = [Order.from_dict(res) for res in results]
+        orders = [order_with_status(Order.from_dict(res)) for res in results]
         return orders, 200
 
 
@@ -175,7 +175,7 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
     with db.conn.cursor() as cursor:
         # Check that the order is being delivered
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
-        order = Order.from_dict(cursor.fetchone())
+        order = order_with_status(Order.from_dict(cursor.fetchone()))
         assert order, f"did not find order with ID {body.order_id}"
         assert order.status == Order.STATUS_CLAIMED, "Order must be first claimed to be complete."
         assert order.orderer_id == user.id, "Only the orderer can mark the delivery as complete."
@@ -204,7 +204,7 @@ def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
     with db.conn.cursor() as cursor:
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
-        order = Order.from_dict(cursor.fetchone())
+        order = order_with_status(Order.from_dict(cursor.fetchone()))
         assert order, f"did not find order with ID {body.order_id}"
         assert order.orderer_id == user.id, "Users can only cancel their own orders."
         assert order.status == Order.STATUS_AVAILABLE, "Only available delivery requests may be cancelled."
@@ -234,7 +234,7 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
     with db.conn.cursor() as cursor:
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
-        order = Order.from_dict(cursor.fetchone())
+        order = order_with_status(Order.from_dict(cursor.fetchone()))
         assert order, f"did not find order with ID {body.order_id}"
         assert order.status == Order.STATUS_AVAILABLE
         assert order.orderer_id != user.id, "Users cannot deliver to themselves."
@@ -268,7 +268,7 @@ def order_unclaim_put(user: AuthInstance, body: dict):
             "SELECT deliverer_id FROM Orders WHERE order_id = %s", 
             [body.order_id]
         )
-        order = Order.from_dict(cursor.fetchone())
+        order = order_with_status(Order.from_dict(cursor.fetchone()))
         assert order, f"did not find order with ID {body.order_id}"
         assert order.deliverer_id == user.id, "Cannot undeliver an order not deliverying."
         assert order.status == Order.STATUS_CLAIMED, "Cannot undeliver an unclaimed order."
@@ -301,7 +301,7 @@ def order_order_id_get(order_id):  # noqa: E501
         )
         order = cursor.fetchone()
         assert order, f"did not find order with ID {order_id}"
-        return Order.from_dict(order), 200
+        return order_with_status(Order.from_dict(order)), 200
 
 def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
     """order_report_post
@@ -319,7 +319,7 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
     with db.conn.cursor() as cursor:
         # Validate that the reporter_user_id and reported_user_id are part of the order
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
-        order = Order.from_dict(cursor.fetchone())
+        order = order_with_status(Order.from_dict(cursor.fetchone()))
         assert order, f"did not find order with ID {body.order_id}"
         assert (order.orderer_id == user.id and order.deliverer_id == body.reported_id) or \
             (order.orderer_id == body.reported_id and order.deliverer_id == user.id), \
@@ -366,7 +366,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user.user_id])
         results = cursor.fetchall()
-        orders = [Order.from_dict(res) for res in results]
+        orders = [order_with_status(Order.from_dict(res)) for res in results]
         active_orders = list(filter(
             lambda o: o.orderer_id == user.user_id and \
                 (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE),
@@ -409,7 +409,7 @@ def orders_available_get():  # noqa: E501
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
-        orders = [Order.from_dict(res) for res in results]
+        orders = [order_with_status(Order.from_dict(res)) for res in results]
         available_orders = list(filter(lambda o: o.status == Order.STATUS_AVAILABLE, orders))
         return available_orders, 200
 
@@ -459,7 +459,7 @@ def user_user_id_orders_claimed_get(user_id):  # noqa: E501
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE deliverer_id = %s", [user_id])
         results = cursor.fetchall()
-        orders = [Order.from_dict(res) for res in results]
+        orders = [order_with_status(Order.from_dict(res)) for res in results]
         claimed_orders = list(filter(lambda o: o.status == Order.STATUS_CLAIMED and o.deliverer_id == user_id, orders))
         return claimed_orders, 200
 
@@ -479,7 +479,7 @@ def user_user_id_orders_active_get(user_id):  # noqa: E501
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user_id])
         results = cursor.fetchall()
-        orders = [Order.from_dict(res) for res in results]
+        orders = [order_with_status(Order.from_dict(res)) for res in results]
         active_orders = list(filter(
             lambda o: o.orderer_id == user_id and \
                 (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE),
@@ -548,7 +548,7 @@ def users_login_post(body: dict):  # noqa: E501
         if auth_token is None:
             auth_token = secrets.token_hex(16) # 32 chars
             assert len(auth_token) == constants.AUTH_TOKEN_LENGTH
-            
+
             cursor.execute(
                 "UPDATE Users SET auth_token = %s WHERE user_id = %s",
                 [auth_token, user_id]
