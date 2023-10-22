@@ -40,8 +40,9 @@ paths:
     get:
       security:
         - AdminAuth: []
-      200:
-        description: Successfully shut down the server.
+      responses:
+        200:
+          description: Successfully shut down the server.
 
   /message:
     summary: Send a message to UniBar.
