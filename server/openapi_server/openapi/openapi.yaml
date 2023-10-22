@@ -939,8 +939,17 @@ components:
       type: object
     body_order_request:
       properties:
+        deadline_time:
+          type: string
+          format: date-time
         order:
-          $ref: '#/components/schemas/Order'
+          type: string
+        source:
+          type: string
+        destination:
+          type: string
+        payment_method:
+          $ref: "#/components/schemas/PaymentMethod"
       required:
       - order
       type: object
