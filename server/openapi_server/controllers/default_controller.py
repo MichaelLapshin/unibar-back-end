@@ -414,8 +414,8 @@ def orders_available_get():  # noqa: E501
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
         orders = filter(
-            [Order.from_dict(res) for res in results], 
-            lambda o: o.status == Order.STATUS_AVAILABLE
+            lambda o: o.status == Order.STATUS_AVAILABLE,
+            [Order.from_dict(res) for res in results]
         )
         return orders, 200
 
@@ -466,8 +466,8 @@ def user_user_id_orders_claimed_get(user_id):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE deliverer_id = %s", [user_id])
         results = cursor.fetchall()
         orders = filter(
-            [Order.from_dict(res) for res in results], 
-            lambda o: o.status == Order.STATUS_CLAIMED and o.deliverer_id == user_id
+            lambda o: o.status == Order.STATUS_CLAIMED and o.deliverer_id == user_id,
+            [Order.from_dict(res) for res in results]
         )
         return orders, 200
 
@@ -488,9 +488,9 @@ def user_user_id_orders_active_get(user_id):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user_id])
         results = cursor.fetchall()
         orders = filter(
-            [Order.from_dict(res) for res in results], 
             lambda o: o.orderer_id == user_id and \
-                (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE)
+                (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE),
+            [Order.from_dict(res) for res in results]
         )
         return orders, 200
 
