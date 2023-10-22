@@ -176,6 +176,7 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
         # Check that the order is being delivered
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
         order = Order.from_dict(cursor.fetchone())
+        assert order, f"did not find order with ID {body.order_id}"
         assert order.status == Order.STATUS_CLAIMED, "Order must be first claimed to be complete."
         assert order.orderer_id == user.id, "Only the orderer can mark the delivery as complete."
 
@@ -204,6 +205,7 @@ def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
         order = Order.from_dict(cursor.fetchone())
+        assert order, f"did not find order with ID {body.order_id}"
         assert order.orderer_id == user.id, "Users can only cancel their own orders."
         assert order.status == Order.STATUS_AVAILABLE, "Only available delivery requests may be cancelled."
 
@@ -233,6 +235,7 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
         order = Order.from_dict(cursor.fetchone())
+        assert order, f"did not find order with ID {body.order_id}"
         assert order.status == Order.STATUS_AVAILABLE
         assert order.orderer_id != user.id, "Users cannot deliver to themselves."
 
@@ -266,6 +269,7 @@ def order_unclaim_put(user: AuthInstance, body: dict):
             [body.order_id]
         )
         order = Order.from_dict(cursor.fetchone())
+        assert order, f"did not find order with ID {body.order_id}"
         assert order.deliverer_id() == user.id(), "Cannot undeliver an order not deliverying."
         assert order.status() == Order.STATUS_CLAIMED, "Cannot undeliver an unclaimed order."
 
@@ -319,6 +323,7 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
             [body.order_id]
         )
         order = Order.from_dict(cursor.fetchone())
+        assert order, f"did not find order with ID {body.order_id}"
         assert order.orderer_id == user.id
         assert order.deliverer_id == body.reported_id
 
@@ -368,9 +373,11 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
         # Check if user has tokens to use on the delivery
         cursor.execute(
             "SELECT delivery_tokens FROM Users WHERE user_id = %s",
-            [user.id()]
+            [user.id]
         )
         user = User.from_dict(cursor.fetchone())
+        assert user, f"did not find user with ID {user.id}"
+
         if user.delivery_tokens() <= len(orders):
             return "Not enough delivery tokens.", 406
 
@@ -439,7 +446,7 @@ def user_user_id_get(user_id):  # noqa: E501
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email FROM Users WHERE user_id = %s", [user_id])
         row = cursor.fetchone()
-        assert row, f"Could not find user with id {user_id}"
+        assert row, f"did not find user with id {user_id}"
         return User.from_dict(row), 200
 
 
