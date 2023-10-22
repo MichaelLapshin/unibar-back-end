@@ -120,8 +120,9 @@ def shutdown_get():
     :rtype: None
     """
     log.info("Received shutdown command. Exiting the server.")
-    server_thread.stop()
-    return "Successfully shut down the server.", 200
+    return "Shutdown command is not implemented.", 501
+    # server_thread.stop()
+    # return "Successfully shut down the server.", 200
 
 def deployment_get():  # noqa: E501
     """deployment_get

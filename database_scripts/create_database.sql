@@ -12,7 +12,8 @@ CREATE TABLE `UniBar`.`Users` (
     `etransfer_email` VARCHAR(32),
 
     PRIMARY KEY (`user_id`),
-    UNIQUE (`auth_token`)
+    UNIQUE (`auth_token`),
+    UNIQUE (`email`)
 );
 
 CREATE TABLE `UniBar`.`Admins` (
