@@ -365,9 +365,9 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user.id])
         results = cursor.fetchall()
         orders = filter(
-            [Order.from_dict(res) for res in results], 
             lambda o: o.orderer_id == user.id and \
-                (o.status() == Order.STATUS_CLAIMED or o.status() == Order.STATUS_AVAILABLE)
+                (o.status() == Order.STATUS_CLAIMED or o.status() == Order.STATUS_AVAILABLE),
+            [Order.from_dict(res) for res in results]
         )
 
         # Check if user has tokens to use on the delivery
