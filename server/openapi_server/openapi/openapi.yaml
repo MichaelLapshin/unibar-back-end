@@ -229,7 +229,7 @@ paths:
               required:
               - order_id
               type: object
-        summary: Cancels a user's own AVAILABLE delivery request. Claimed requests cannot be cancelled.
+        description: Cancels a user's own AVAILABLE delivery request. Claimed requests cannot be cancelled.
         required: true
   /order/report:
     post:
