@@ -84,11 +84,11 @@ class Order(Model):
         self._order_id = order_id
         self._orderer_id = orderer_id
         self._deliverer_id = deliverer_id
-        self._creation_time = creation_time.replace(tzinfo=timezone.utc) if not None else None
-        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if not None else None
-        self._claimed_time = claimed_time.replace(tzinfo=timezone.utc) if not None else None
-        self._delivered_time = delivered_time.replace(tzinfo=timezone.utc) if not None else None
-        self._cancelled_time = cancelled_time.replace(tzinfo=timezone.utc) if not None else None
+        self._creation_time = creation_time.replace(tzinfo=timezone.utc) if creation_time is not None else None
+        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if deadline_time is not None else None
+        self._claimed_time = claimed_time.replace(tzinfo=timezone.utc) if claimed_time is not None else None
+        self._delivered_time = delivered_time.replace(tzinfo=timezone.utc) if delivered_time is not None else None
+        self._cancelled_time = cancelled_time.replace(tzinfo=timezone.utc) if cancelled_time is not None else None
         self._order = order
         self._source = source
         self._destination = destination
@@ -193,7 +193,7 @@ class Order(Model):
         :type creation_time: datetime
         """
 
-        self._creation_time = creation_time.replace(tzinfo=timezone.utc) if not None else None
+        self._creation_time = creation_time.replace(tzinfo=timezone.utc) if creation_time is not None else None
 
     @property
     def deadline_time(self):
@@ -214,7 +214,7 @@ class Order(Model):
         :type deadline_time: datetime
         """
 
-        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if not None else None
+        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if deadline_time is not None else None
 
     @property
     def claimed_time(self):
@@ -235,7 +235,7 @@ class Order(Model):
         :type claimed_time: datetime
         """
 
-        self._claimed_time = claimed_time.replace(tzinfo=timezone.utc) if not None else None
+        self._claimed_time = claimed_time.replace(tzinfo=timezone.utc) if claimed_time is not None else None
 
     @property
     def delivered_time(self):
@@ -256,7 +256,7 @@ class Order(Model):
         :type delivered_time: datetime
         """
 
-        self._delivered_time = delivered_time.replace(tzinfo=timezone.utc) if not None else None
+        self._delivered_time = delivered_time.replace(tzinfo=timezone.utc) if delivered_time is not None else None
 
     @property
     def cancelled_time(self):
@@ -277,7 +277,7 @@ class Order(Model):
         :type cancelled_time: datetime
         """
 
-        self._cancelled_time = cancelled_time.replace(tzinfo=timezone.utc) if not None else None
+        self._cancelled_time = cancelled_time.replace(tzinfo=timezone.utc) if cancelled_time is not None else None
 
     @property
     def order(self):

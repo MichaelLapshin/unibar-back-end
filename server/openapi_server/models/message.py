@@ -49,7 +49,7 @@ class Message(Model):
         self._user_id = user_id
         self._email = email
         self._message = message
-        self._time = time.replace(tzinfo=timezone.utc) if not None else None
+        self._time = time.replace(tzinfo=timezone.utc) if time is not None else None
 
     @classmethod
     def from_dict(cls, dikt) -> 'Message':
@@ -169,4 +169,4 @@ class Message(Model):
         :type time: datetime
         """
 
-        self._time = time.replace(tzinfo=timezone.utc) if not None else None
+        self._time = time.replace(tzinfo=timezone.utc) if time is not None else None

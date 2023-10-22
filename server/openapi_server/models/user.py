@@ -61,7 +61,7 @@ class User(Model):
         self._name = name
         self._email = email
         self._phone_number = phone_number
-        self._registered_time = registered_time.replace(tzinfo=timezone.utc) if not None else None
+        self._registered_time = registered_time.replace(tzinfo=timezone.utc) if registered_time is not None else None
         self._delivery_tokens = delivery_tokens
         self._etransfer_email = etransfer_email
 
@@ -187,7 +187,7 @@ class User(Model):
         :type registered_time: datetime
         """
 
-        self._registered_time = registered_time.replace(tzinfo=timezone.utc) if not None else None
+        self._registered_time = registered_time.replace(tzinfo=timezone.utc) if registered_time is not None else None
 
     @property
     def delivery_tokens(self):

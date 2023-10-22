@@ -47,7 +47,7 @@ class BodyOrderCreate(Model):
             'payment_method': 'payment_method'
         }
 
-        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if not None else None
+        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if deadline_time is not None else None
         self._order = order
         self._source = source
         self._destination = destination
@@ -85,7 +85,7 @@ class BodyOrderCreate(Model):
         if deadline_time is None:
             raise ValueError("Invalid value for `deadline_time`, must not be `None`")  # noqa: E501
 
-        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if not None else None
+        self._deadline_time = deadline_time.replace(tzinfo=timezone.utc) if deadline_time is not None else None
 
     @property
     def order(self):

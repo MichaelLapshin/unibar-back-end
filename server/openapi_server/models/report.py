@@ -57,7 +57,7 @@ class Report(Model):
         self._reporter_user_id = reporter_user_id
         self._reported_user_id = reported_user_id
         self._order_id = order_id
-        self._time = time.replace(tzinfo=timezone.utc) if not None else None
+        self._time = time.replace(tzinfo=timezone.utc) if time is not None else None
         self._message = message
         self._conclusion = conclusion
 
@@ -181,7 +181,7 @@ class Report(Model):
         :type time: datetime
         """
 
-        self._time = time.replace(tzinfo=timezone.utc) if not None else None
+        self._time = time.replace(tzinfo=timezone.utc) if time is not None else None
 
     @property
     def message(self):
