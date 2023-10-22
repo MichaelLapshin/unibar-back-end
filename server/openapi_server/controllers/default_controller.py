@@ -183,7 +183,7 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
         # Transfer delivery token from orderer to deliverer
         cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens - 1 WHERE user_id = %s", [order.orderer_id])
         cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens + 1 WHERE user_id = %s", [order.deliverer_id])
-        cursor.execute("UDPATE Orders SET delivered_time = %s WHERE order_id = %s", [datetime.datetime.now(), order.order_id])
+        cursor.execute("UPDATE Orders SET delivered_time = %s WHERE order_id = %s", [datetime.datetime.now(), order.order_id])
         db.conn.commit()
 
         return f"Successfully marked order {order.order_id} as complete.", 200
