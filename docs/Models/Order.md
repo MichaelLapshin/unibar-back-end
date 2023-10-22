@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **deadlineUnderscoretime** | [**Date**](DateTime.md) |  | [optional] [default to null]
 **claimedUnderscoretime** | [**Date**](DateTime.md) |  | [optional] [default to null]
 **deliveredUnderscoretime** | [**Date**](DateTime.md) |  | [optional] [default to null]
+**cancelledUnderscoretime** | [**Date**](DateTime.md) |  | [optional] [default to null]
 **order** | [**String**](string.md) |  | [optional] [default to null]
 **source** | [**String**](string.md) |  | [optional] [default to null]
 **destination** | [**String**](string.md) |  | [optional] [default to null]
