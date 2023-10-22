@@ -318,14 +318,12 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
 
     with db.conn.cursor() as cursor:
         # Validate that the reporter_user_id and reported_user_id are part of the order
-        cursor.execute(
-            "SELECT orderer_id, reported_id FROM Orders WHERE order_id = %s",
-            [body.order_id]
-        )
+        cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
         order = Order.from_dict(cursor.fetchone())
         assert order, f"did not find order with ID {body.order_id}"
-        assert order.orderer_id == user.id
-        assert order.deliverer_id == body.reported_id
+        assert (order.orderer_id == user.id and order.deliverer_id == body.reported_id) or \
+            (order.orderer_id == body.reported_id and order.deliverer_id == user.id), \
+            "User can only report the other in the context of the delivery order."
 
         # Create order
         cursor.execute(
@@ -360,25 +358,22 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
     body = BodyOrderCreate.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
+        cursor.execute( "SELECT * FROM Users WHERE user_id = %s", [user.id])
+        user = User.from_dict(cursor.fetchone()) # override auth user
+        assert user, f"did not find user with ID {user.user_id}"
+
         # Count number of active orders that user is requesting
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
-        cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user.id])
+        cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user.user_id])
         results = cursor.fetchall()
         orders = [Order.from_dict(res) for res in results]
         active_orders = list(filter(
-            lambda o: o.orderer_id == user.id and \
+            lambda o: o.orderer_id == user.user_id and \
                 (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE),
             orders
         ))
 
         # Check if user has tokens to use on the delivery
-        cursor.execute(
-            "SELECT delivery_tokens FROM Users WHERE user_id = %s",
-            [user.id]
-        )
-        user = User.from_dict(cursor.fetchone())
-        assert user, f"did not find user with ID {user.id}"
-
         if user.delivery_tokens <= len(active_orders):
             return "Not enough delivery tokens.", 406
 
@@ -387,7 +382,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
             "INSERT INTO Orders (order_id, orderer_id, creation_time, deadline_time, order, source, destination, payment_method) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
             [
                 util.generate_uuid(),
-                user.id,
+                user.user_id,
                 datetime.datetime.now(),
                 body.deadline_time,
                 body.order,
