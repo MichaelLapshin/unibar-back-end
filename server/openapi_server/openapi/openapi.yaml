@@ -229,8 +229,17 @@ paths:
               required:
               - order_id
               type: object
-        description: Cancels a user's own AVAILABLE delivery request. Claimed requests cannot be cancelled.
+        description: User's own available order which they wish to cancel.
         required: true
+      responses:
+        "200":
+          description: Succesfully cancelled one's available order.
+        "400":
+          description: Failed to cancel one's available order.
+      security:
+      - UserAuth: []
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    summary: Cancels a user's own AVAILABLE delivery request. Claimed requests cannot be cancelled.
   /order/report:
     post:
       operationId: order_report_post
