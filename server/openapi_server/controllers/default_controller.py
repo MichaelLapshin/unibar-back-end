@@ -364,10 +364,11 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user.id])
         results = cursor.fetchall()
-        orders = filter(
+        orders = [Order.from_dict(res) for res in results]
+        active_orders = filter(
             lambda o: o.orderer_id == user.id and \
                 (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE),
-            [Order.from_dict(res) for res in results]
+            orders
         )
 
         # Check if user has tokens to use on the delivery
@@ -378,7 +379,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
         user = User.from_dict(cursor.fetchone())
         assert user, f"did not find user with ID {user.id}"
 
-        if user.delivery_tokens() <= len(orders):
+        if user.delivery_tokens() <= len(active_orders):
             return "Not enough delivery tokens.", 406
 
         # Create order
@@ -413,11 +414,9 @@ def orders_available_get():  # noqa: E501
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
-        orders = filter(
-            lambda o: o.status == Order.STATUS_AVAILABLE,
-            [Order.from_dict(res) for res in results]
-        )
-        return orders, 200
+        orders = [Order.from_dict(res) for res in results]
+        available_orders = filter(lambda o: o.status == Order.STATUS_AVAILABLE, orders)
+        return available_orders, 200
 
 
 def ping_get():  # noqa: E501
@@ -465,11 +464,9 @@ def user_user_id_orders_claimed_get(user_id):  # noqa: E501
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE deliverer_id = %s", [user_id])
         results = cursor.fetchall()
-        orders = filter(
-            lambda o: o.status == Order.STATUS_CLAIMED and o.deliverer_id == user_id,
-            [Order.from_dict(res) for res in results]
-        )
-        return orders, 200
+        orders = [Order.from_dict(res) for res in results]
+        claimed_orders = filter(lambda o: o.status == Order.STATUS_CLAIMED and o.deliverer_id == user_id, orders)
+        return claimed_orders, 200
 
 
 def user_user_id_orders_active_get(user_id):  # noqa: E501
@@ -487,12 +484,13 @@ def user_user_id_orders_active_get(user_id):  # noqa: E501
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user_id])
         results = cursor.fetchall()
-        orders = filter(
+        orders = [Order.from_dict(res) for res in results]
+        active_orders = filter(
             lambda o: o.orderer_id == user_id and \
                 (o.status == Order.STATUS_CLAIMED or o.status == Order.STATUS_AVAILABLE),
-            [Order.from_dict(res) for res in results]
+            orders
         )
-        return orders, 200
+        return active_orders, 200
 
 
 def user_user_id_update_patch(user: AuthInstance, user_id, body: dict):  # noqa: E501
