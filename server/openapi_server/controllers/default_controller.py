@@ -132,7 +132,8 @@ def deployment_get():  # noqa: E501
 
     :rtype: str
     """
-    return f"name: {server_attr.deployment_name}\n" + \
+    return f"is production: {server_attr.is_prod}\n" + \
+        f"name: {server_attr.deployment_name}\n" + \
         f"uptime: {datetime.now(timezone.utc) - server_attr.start_time}", 200
 
 
@@ -618,7 +619,6 @@ def users_login_post(body: dict):  # noqa: E501
         response.set_cookie("user_token", auth_token)
         return response, 200
 
-
 def users_register_post(body: dict):  # noqa: E501
     """Create a new user.
 
@@ -632,10 +632,21 @@ def users_register_post(body: dict):  # noqa: E501
     log.info(f"Registering a new user.")
     body = BodyUsersRegister.from_dict(body)  # noqa: E501
 
-    # TODO: Add email-confirmation logic
+    if server_attr.is_prod:
+        if not body.email.endswith("@uwaterloo.ca"):
+            return "Users may only register with Univerity of Waterloo (@uwaterloo.ca) emails.", 400
+        
+        # TODO: Add email-confirmation logic
+
 
     with db.conn.cursor() as cursor:
         db.conn.begin()
+        
+        # Checks if user already exists. Return error message if not.
+        cursor.execute("SELECT COUNT(*) FROM Users WHERE email = %s", [body.email])
+        if cursor.fetchone() >= 1:
+            return "User with the provided email already exists.", 400
+
         cursor.execute(
             "INSERT INTO Users (user_id, password, name, email, registered_time, delivery_tokens, phone_number) VALUES (%s, %s, %s, %s, %s, %s, %s)",
             [

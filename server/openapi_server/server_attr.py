@@ -9,6 +9,8 @@ deployment_name = os.environ.get("UNIBAR_DEPLOYMENT_NAME")
 print("Deployment name:", deployment_name)
 assert(deployment_name)
 
+is_prod = (os.environ.get("UNIBAR_DEPLOYMENT_TYPE") == "prod")
+
 # Configure database
 rds_hostname = os.environ.get("UNIBAR_RDS_HOSTNAME")
 rds_username = os.environ.get("UNIBAR_RDS_USERNAME")
