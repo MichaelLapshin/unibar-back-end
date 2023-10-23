@@ -32,8 +32,7 @@ class DB:
 
     @property
     def conn(self):
-        if self._conn == None:
-            log.error("RDS DB connection is None!")
+        self._conn.ping(reconnect=True) # Makes sure the database is connected
         return self._conn
 
     def close(self):

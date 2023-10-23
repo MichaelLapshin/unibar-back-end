@@ -148,6 +148,7 @@ def message_post(body: dict):  # noqa: E501
     body = BodyMessage.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
+        db.conn.begin()
         cursor.execute(
             "INSERT INTO Messages (message_id, user_id, email, message, time) VALUES (%s, %s, %s, %s, %s)", 
             [
@@ -175,6 +176,8 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
     body = BodyOrderComplete.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
+        db.conn.begin()
+
         # Check that the order is being delivered
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
         order = order_with_status(Order.from_dict(cursor.fetchone()))
@@ -189,8 +192,8 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens - 1 WHERE user_id = %s", [order.orderer_id])
         cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens + 1 WHERE user_id = %s", [order.deliverer_id])
         cursor.execute("UPDATE Orders SET delivered_time = %s WHERE order_id = %s", [datetime.now(timezone.utc), order.order_id])
-        db.conn.commit()
 
+        db.conn.commit()
         return f"Successfully marked order {order.order_id} as complete.", 200
 
 def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
@@ -208,6 +211,8 @@ def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
     body = BodyOrderCancel.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
+        db.conn.begin()
+
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
         order = order_with_status(Order.from_dict(cursor.fetchone()))
@@ -242,6 +247,8 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
     body = BodyOrderClaim.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
+        db.conn.begin()
+
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
         order = order_with_status(Order.from_dict(cursor.fetchone()))
@@ -285,6 +292,8 @@ def order_unclaim_put(user: AuthInstance, body: dict):
     body = BodyOrderUnclaim.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
+        db.conn.begin()
+
         # Assert that the order to undeliver is being delivered by the user.
         cursor.execute(
             "SELECT * FROM Orders WHERE order_id = %s", 
@@ -344,6 +353,8 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
     body = BodyOrderReport.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
+        db.conn.begin()
+
         # Validate that the reporter_user_id and reported_user_id are part of the order
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
         order = order_with_status(Order.from_dict(cursor.fetchone()))
@@ -388,6 +399,8 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
     current_time = datetime.now(timezone.utc)
 
     with db.conn.cursor() as cursor:
+        db.conn.begin()
+
         cursor.execute( "SELECT * FROM Users WHERE user_id = %s", [user.id])
         user = User.from_dict(cursor.fetchone()) # override auth user
         if not user:
@@ -546,6 +559,7 @@ def user_user_id_update_patch(user: AuthInstance, user_id, body: dict):  # noqa:
     body = BodyUserUpdate.from_dict(body)  # noqa: E501
 
     with db.conn.cursor() as cursor:
+        db.conn.begin()
         if body.name is not None:
             cursor.execute("UPDATE Users SET name = %s WHERE user_id = %s", [body.name, user_id])
         if body.password is not None:
@@ -591,6 +605,7 @@ def users_login_post(body: dict):  # noqa: E501
             auth_token = secrets.token_hex(16) # 32 chars
             assert len(auth_token) == constants.AUTH_TOKEN_LENGTH
 
+            db.conn.begin()
             cursor.execute(
                 "UPDATE Users SET auth_token = %s WHERE user_id = %s",
                 [auth_token, user_id]
@@ -620,6 +635,7 @@ def users_register_post(body: dict):  # noqa: E501
     # TODO: Add email-confirmation logic
 
     with db.conn.cursor() as cursor:
+        db.conn.begin()
         cursor.execute(
             "INSERT INTO Users (user_id, password, name, email, registered_time, delivery_tokens, phone_number) VALUES (%s, %s, %s, %s, %s, %s, %s)",
             [
