@@ -11,6 +11,7 @@ Use the AWS console to access the EC2 instance an open a terminal session to it.
 2. Configure the following environment variables:
 ```
 UNIBAR_DEPLOYMENT_NAME = <deployment_name>
+UNIBAR_DEPLOYMENT_TYPE = ['prod' | 'dev']
 UNIBAR_RDS_HOSTNAME = <rds_server_hostname>
 UNIBAR_RDS_USERNAME = <rds_server_username>
 UNIBAR_RDS_PASSWORD = <rds_server_password>
