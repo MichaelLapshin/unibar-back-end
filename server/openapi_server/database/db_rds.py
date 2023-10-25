@@ -33,6 +33,7 @@ class DB:
     @property
     def conn(self):
         self._conn.ping(reconnect=True) # Makes sure the database is connected
+        self._conn.select_db(server_attr.rds_database)
         return self._conn
 
     def close(self):

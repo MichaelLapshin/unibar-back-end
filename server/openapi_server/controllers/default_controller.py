@@ -644,7 +644,8 @@ def users_register_post(body: dict):  # noqa: E501
         
         # Checks if user already exists. Return error message if not.
         cursor.execute("SELECT COUNT(*) FROM Users WHERE email = %s", [body.email])
-        if cursor.fetchone() >= 1:
+        result = cursor.fetchone()
+        if result["COUNT(*)"] >= 1:
             return "User with the provided email already exists.", 400
 
         cursor.execute(
