@@ -8,10 +8,11 @@ Use the AWS console to access the EC2 instance an open a terminal session to it.
 
 ## Running the server
 1. Install the requirements: `sudo pip3 install --no-cache-dir -r server/requirements.txt`
-2. Configure the following environment variables:
+2. Create a `server/.env` file to define the following environment variables:
 ```
 UNIBAR_DEPLOYMENT_NAME = <deployment_name>
 UNIBAR_DEPLOYMENT_TYPE = ['prod' | 'dev']
+
 UNIBAR_RDS_HOSTNAME = <rds_server_hostname>
 UNIBAR_RDS_USERNAME = <rds_server_username>
 UNIBAR_RDS_PASSWORD = <rds_server_password>

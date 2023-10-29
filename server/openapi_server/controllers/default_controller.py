@@ -37,14 +37,17 @@ def admin_login_post(body: dict):  # noqa: E501
     :rtype: None
     """
     log.info(f"Attempting to log in admin.")
-    body = BodyAdminLogin.from_dict(body)  # noqa: E501
+    try:
+        body = BodyAdminLogin.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     # Find user associated with the email
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT admin_id, name FROM Admins WHERE auth_token = %s", [body.admin_token])
         row = cursor.fetchone()
         if not row:
-            return "admin with the provided api key does not exist", 400
+            return "Admin with the provided api key does not exist.", 400
 
         admin_id = row["admin_id"]
         name = row["name"]
@@ -121,6 +124,7 @@ def shutdown_get():
     :rtype: None
     """
     log.info("Received shutdown command. Exiting the server.")
+    log.error("Shutdown command is not implemented.")
     return "Shutdown command is not implemented.", 501
     # server_thread.stop()
     # return "Successfully shut down the server.", 200
@@ -146,7 +150,10 @@ def message_post(body: dict):  # noqa: E501
 
     :rtype: None
     """
-    body = BodyMessage.from_dict(body)  # noqa: E501
+    try:
+        body = BodyMessage.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     with db.conn.cursor() as cursor:
         db.conn.begin()
@@ -173,8 +180,12 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
     :rtype: None
     """
     if user.type != constants.AUTH_TYPE_USER:
-        return "requesting order complete by a non-user", 400
-    body = BodyOrderComplete.from_dict(body)  # noqa: E501
+        return "Requesting to complete and order from a non-user.", 400
+    
+    try:
+        body = BodyOrderComplete.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     with db.conn.cursor() as cursor:
         db.conn.begin()
@@ -183,7 +194,7 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
         order = order_with_status(Order.from_dict(cursor.fetchone()))
         if not order:
-            return f"did not find order with ID {body.order_id}", 400
+            return f"Did not find order with ID {body.order_id}.", 400
         if order.status != Order.STATUS_CLAIMED:
             return "Order must be first claimed to be complete.", 400
         if order.orderer_id != user.id:
@@ -209,7 +220,11 @@ def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
     """
     if user.type != constants.AUTH_TYPE_USER:
         return "A non-user is attempting to cancel an order.", 400
-    body = BodyOrderCancel.from_dict(body)  # noqa: E501
+    
+    try:
+        body = BodyOrderCancel.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     with db.conn.cursor() as cursor:
         db.conn.begin()
@@ -218,7 +233,7 @@ def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
         order = order_with_status(Order.from_dict(cursor.fetchone()))
         if not order:
-            return f"did not find order with ID {body.order_id}", 400
+            return f"Did not find order with ID {body.order_id}.", 400
         if order.orderer_id != user.id:
             return "Users can only cancel their own orders.", 400
         if order.status != Order.STATUS_AVAILABLE:
@@ -245,7 +260,11 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
     """
     if user.type != constants.AUTH_TYPE_USER:
         return "Only users can claim orders.", 400
-    body = BodyOrderClaim.from_dict(body)  # noqa: E501
+    
+    try:
+        body = BodyOrderClaim.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     with db.conn.cursor() as cursor:
         db.conn.begin()
@@ -254,7 +273,7 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
         order = order_with_status(Order.from_dict(cursor.fetchone()))
         if not order:
-            return f"did not find order with ID {body.order_id}", 400
+            return f"Did not find order with ID {body.order_id}.", 400
         if order.status != Order.STATUS_AVAILABLE:
             return "Users may only claim available orders.", 400
         if order.orderer_id == user.id:
@@ -290,7 +309,11 @@ def order_unclaim_put(user: AuthInstance, body: dict):
     """
     if user.type != constants.AUTH_TYPE_USER:
         return "Only users can unclaim orders.", 400
-    body = BodyOrderUnclaim.from_dict(body)  # noqa: E501
+    
+    try:
+        body = BodyOrderUnclaim.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     with db.conn.cursor() as cursor:
         db.conn.begin()
@@ -302,7 +325,7 @@ def order_unclaim_put(user: AuthInstance, body: dict):
         )
         order = order_with_status(Order.from_dict(cursor.fetchone()))
         if not order:
-            return f"did not find order with ID {body.order_id}", 400
+            return f"Did not find order with ID {body.order_id}.", 400
         if order.deliverer_id != user.id:
             return "Cannot undeliver an order not deliverying.", 400
         if order.status != Order.STATUS_CLAIMED:
@@ -336,7 +359,7 @@ def order_order_id_get(order_id):  # noqa: E501
         )
         order = cursor.fetchone()
         if not order:
-            return f"did not find order with ID {order_id}", 400
+            return f"Did not find order with ID {order_id}.", 400
         return order_with_status(Order.from_dict(order)), 200
 
 def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
@@ -351,7 +374,11 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
     """
     if user.type != constants.AUTH_TYPE_USER:
         return "Only users may report.", 400
-    body = BodyOrderReport.from_dict(body)  # noqa: E501
+    
+    try:
+        body = BodyOrderReport.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     with db.conn.cursor() as cursor:
         db.conn.begin()
@@ -360,7 +387,7 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
         order = order_with_status(Order.from_dict(cursor.fetchone()))
         if not order:
-            return f"did not find order with ID {body.order_id}", 400
+            return f"Did not find order with ID {body.order_id}.", 400
         if not ((order.orderer_id == user.id and order.deliverer_id == body.reported_id) or \
             (order.orderer_id == body.reported_id and order.deliverer_id == user.id)):
             return "User can only report the other in the context of the delivery order.", 400
@@ -395,7 +422,10 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
     :rtype: None
     """
     assert user.type == constants.AUTH_TYPE_USER, "not a user"
-    body = BodyOrderCreate.from_dict(body)  # noqa: E501
+    try:
+        body = BodyOrderCreate.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     current_time = datetime.now(timezone.utc)
 
@@ -405,7 +435,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute( "SELECT * FROM Users WHERE user_id = %s", [user.id])
         user = User.from_dict(cursor.fetchone()) # override auth user
         if not user:
-            return f"did not find user with ID {user.user_id}", 400
+            return f"Did not find user with ID {user.user_id}.", 400
 
         # Count number of active orders that user is requesting
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
@@ -420,11 +450,11 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
 
         # Check if user has tokens to use on the delivery
         if user.delivery_tokens <= len(active_orders):
-            return "Not enough delivery tokens.", 400
+            return "Not enough delivery tokens to create an order.", 400
 
         # Assert that the deadline must be after
         if body.deadline_time <= current_time:
-            return "Deadline must be a later time.", 400
+            return "Deadline must be a later time than now.", 400
 
         # Assert that the request is at most x-hours later.
         if body.deadline_time > current_time + timedelta(hours=constants.ORDER_MAX_REQUEST_HOURS):
@@ -494,7 +524,7 @@ def user_user_id_get(user_id):  # noqa: E501
         cursor.execute("SELECT user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email FROM Users WHERE user_id = %s", [user_id])
         row = cursor.fetchone()
         if not row:
-            return f"did not find user with id {user_id}", 400
+            return f"Did not find user with id {user_id}.", 400
         return User.from_dict(row), 200
 
 
@@ -557,7 +587,10 @@ def user_user_id_update_patch(user: AuthInstance, user_id, body: dict):  # noqa:
     if (user.id != user_id) and (user.type != constants.AUTH_TYPE_ADMIN):
         return "Not authorized to update user's information.", 401
 
-    body = BodyUserUpdate.from_dict(body)  # noqa: E501
+    try:
+        body = BodyUserUpdate.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     with db.conn.cursor() as cursor:
         db.conn.begin()
@@ -586,17 +619,20 @@ def users_login_post(body: dict):  # noqa: E501
     """
 
     log.info(f"Attempting to log in user.")
-    body = BodyUsersLogin.from_dict(body)  # noqa: E501
+    try:
+        body = BodyUsersLogin.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     # Find user associated with the email
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT user_id, name, auth_token, password FROM Users WHERE email = %s", [body.email])
         row = cursor.fetchone()
         if not row:
-            return "user with the provided username does not exist", 400
+            return "User with the provided email does not exist.", 400
 
         if row["password"] != body.password:
-            return "invalid user credentials", 400
+            return "Invalid user credentials.", 400
         user_id = row["user_id"]
         name = row["name"]
         auth_token = row["auth_token"]
@@ -630,11 +666,14 @@ def users_register_post(body: dict):  # noqa: E501
     :rtype: None
     """    
     log.info(f"Registering a new user.")
-    body = BodyUsersRegister.from_dict(body)  # noqa: E501
+    try:
+        body = BodyUsersRegister.from_dict(body)  # noqa: E501
+    except ValueError as e:
+        return str(e), 400
 
     if server_attr.is_prod:
         if not body.email.endswith("@uwaterloo.ca"):
-            return "Users may only register with Univerity of Waterloo (@uwaterloo.ca) emails.", 400
+            return "Users may only register with a Univerity of Waterloo (@uwaterloo.ca) email.", 400
         
         # TODO: Add email-confirmation logic
 
@@ -648,10 +687,11 @@ def users_register_post(body: dict):  # noqa: E501
         if result["COUNT(*)"] >= 1:
             return "User with the provided email already exists.", 400
 
+        new_user_id = util.generate_uuid()
         cursor.execute(
             "INSERT INTO Users (user_id, password, name, email, registered_time, delivery_tokens, phone_number) VALUES (%s, %s, %s, %s, %s, %s, %s)",
             [
-                util.generate_uuid(),
+                new_user_id,
                 body.password,
                 body.name,
                 body.email,
@@ -662,4 +702,4 @@ def users_register_post(body: dict):  # noqa: E501
         )
         db.conn.commit()
     
-    return f"Successfully registered user {body.name}.", 200
+        return f"Successfully registered user {body.name} (user_id: {new_user_id}).", 200
