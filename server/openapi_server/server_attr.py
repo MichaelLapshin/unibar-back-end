@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone
 import dotenv
 
 dotenv.load_dotenv()
@@ -6,7 +7,7 @@ dotenv.load_dotenv()
 # Define global configuration variables
 print("===== Server Configuration =====")
 
-start_time = None
+start_time = datetime.utcnow()
 
 deployment_name = os.getenv("UNIBAR_DEPLOYMENT_NAME")
 print("Deployment name:", deployment_name)

@@ -1,7 +1,9 @@
 import logging
 import threading
+from pathlib import Path
 from flask import Flask, session, has_request_context
 from datetime import datetime, timezone
+from openapi_server import server_attr    
 
 class SessionFormatter(logging.Formatter):
     def format(self, record):
@@ -26,7 +28,8 @@ for handler in log.handlers:
     log.removeHandler(handler)
 
 # Set file logger
-fh = logging.FileHandler(f"unibar_server_{datetime.now(timezone.utc)}.log")
+Path("logs").mkdir(parents=True, exist_ok=True) # create dir
+fh = logging.FileHandler(f"logs/unibar_server_{datetime.utcnow()}.log")
 fh.setFormatter(SessionFormatter('%(asctime)s %(levelname)-4s (SID: %(session_id)-8s, THREAD: %(thread_id)-8s)  %(message)s'))
 log.addHandler(fh)
 
