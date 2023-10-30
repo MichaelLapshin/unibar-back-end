@@ -1,5 +1,6 @@
 import datetime
 
+import os
 import six
 import typing
 import uuid
@@ -10,6 +11,9 @@ def generate_uuid():
     if len(id) != constants.UUID_LENGTH:
         raise Exception(f"Bad UUID was generated: {id}")
     return id
+
+def generate_session_id():
+    return str(os.urandom(4).hex()) # 8 chars
 
 def _deserialize(data, klass):
     """Deserializes dict, list, str into an object.

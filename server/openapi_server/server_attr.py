@@ -1,22 +1,26 @@
 import os
+from datetime import datetime, timezone
+import dotenv
+
+dotenv.load_dotenv()
 
 # Define global configuration variables
 print("===== Server Configuration =====")
 
-start_time = None
+start_time = datetime.now(timezone.utc)
 
-deployment_name = os.environ.get("UNIBAR_DEPLOYMENT_NAME")
+deployment_name = os.getenv("UNIBAR_DEPLOYMENT_NAME")
 print("Deployment name:", deployment_name)
 assert(deployment_name)
 
-is_prod = (os.environ.get("UNIBAR_DEPLOYMENT_TYPE") == "prod")
+is_prod = (os.getenv("UNIBAR_DEPLOYMENT_TYPE") == "prod")
 
 # Configure database
-rds_hostname = os.environ.get("UNIBAR_RDS_HOSTNAME")
-rds_username = os.environ.get("UNIBAR_RDS_USERNAME")
-rds_password = os.environ.get("UNIBAR_RDS_PASSWORD")
-rds_port = int(os.environ.get("UNIBAR_RDS_PORT"))
-rds_database = os.environ.get("UNIBAR_RDS_DATABASE")
+rds_hostname = os.getenv("UNIBAR_RDS_HOSTNAME")
+rds_username = os.getenv("UNIBAR_RDS_USERNAME")
+rds_password = os.getenv("UNIBAR_RDS_PASSWORD")
+rds_port = int(os.getenv("UNIBAR_RDS_PORT"))
+rds_database = os.getenv("UNIBAR_RDS_DATABASE")
 
 print("=== RDS Config ===")
 print("hostname: ", rds_hostname)

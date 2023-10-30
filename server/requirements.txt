@@ -4,3 +4,4 @@ python_dateutil >= 2.6.0
 setuptools >= 21.0.0
 pymysql == 1.1.0
 waitress == 2.1.2
+python-dotenv == 1.0.0

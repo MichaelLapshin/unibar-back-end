@@ -12,7 +12,7 @@ db_password=${3:-$UNIBAR_RDS_PASSWORD}
 db_host=${4:-$UNIBAR_RDS_HOSTNAME}
 db_port=${5:-$UNIBAR_RDS_PORT}
 
-if [[ $# -eq 4 || $# -eq 1 ]]; then
+if [[ $# -eq 5 || $# -eq 1 ]]; then
     echo "INSERT INTO UniBar.Admins (admin_id, name, auth_token, registered_time) VALUES \
             ('$admin_id', '$admin_name', '$auth_token', '$registered_time');" \
             | mysql -u$db_user -p$db_password -h$db_host -P$db_port

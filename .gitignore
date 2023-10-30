@@ -4,6 +4,9 @@ server_unmodified/
 sanity_check/
 testing.yaml
 
+# logs
+.log
+logs/
 
 # IDE rubble
 .DS_Store
