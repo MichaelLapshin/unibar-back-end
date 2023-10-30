@@ -387,7 +387,7 @@ def order_with_status(order: Order):
             but it is for ensuring accuracy of the status.
     """
     self = order
-    current_time = datetime.utcnow()
+    current_time = datetime.now(timezone.utc)
 
     # Facts: delivered time is only set if
     # - the order was delivered.

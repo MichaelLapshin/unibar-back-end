@@ -29,11 +29,11 @@ for handler in log.handlers:
 
 # Set file logger
 Path("logs").mkdir(parents=True, exist_ok=True) # create dir
-fh = logging.FileHandler(f"logs/unibar_server_{datetime.utcnow()}.log")
-fh.setFormatter(SessionFormatter('%(asctime)s %(levelname)-4s (SID: %(session_id)-8s, THREAD: %(thread_id)-8s)  %(message)s'))
+fh = logging.FileHandler(f"logs/unibar_server_{datetime.now(timezone.utc)}.log")
+fh.setFormatter(SessionFormatter('%(asctime)s %(levelname)-5s (SID: %(session_id)-8s, THREAD: %(thread_id)s)  %(message)s'))
 log.addHandler(fh)
 
 # Set stdout logger
 stdout = logging.StreamHandler()
-stdout.setFormatter(SessionFormatter('%(asctime)s %(levelname)-4s  (SID: %(session_id)-8s, THREAD: %(thread_id)-8s)  %(message)s'))
+stdout.setFormatter(SessionFormatter('%(asctime)s %(levelname)-5s (SID: %(session_id)-8s, THREAD: %(thread_id)s)  %(message)s'))
 log.addHandler(stdout)
