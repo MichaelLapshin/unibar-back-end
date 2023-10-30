@@ -42,6 +42,10 @@ def admin_login_post(body: dict):  # noqa: E501
     except ValueError as e:
         return str(e), 400
 
+    # Set session ID if not exists
+    if "session_id" not in session:
+        session["session_id"] = util.generate_session_id()
+
     # Find user associated with the email
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT admin_id, name FROM Admins WHERE auth_token = %s", [body.admin_token])
@@ -54,7 +58,7 @@ def admin_login_post(body: dict):  # noqa: E501
 
         # Set cookie and return the response
         log.info(f"Succesfully logged in admin '{name}' ({admin_id}).")
-        response = make_response(f"Succesfully logged in admin '{name}'.")
+        response = make_response(f"Succesfully logged in admin '{name}' ({admin_id}).")
         response.set_cookie("admin_token", body.admin_token)
         return response, 200
 
@@ -136,6 +140,7 @@ def deployment_get():  # noqa: E501
 
     :rtype: str
     """
+    log.info("Fetched deployment info.")
     return f"is production: {server_attr.is_prod}\n" + \
         f"name: {server_attr.deployment_name}\n" + \
         f"uptime: {datetime.now(timezone.utc) - server_attr.start_time}", 200
@@ -505,7 +510,7 @@ def ping_get():  # noqa: E501
 
     :rtype: str
     """
-    log.info("(ping_get) Pinged.")
+    log.info("Pinged server.")
     return "ping", 200
 
 
@@ -624,6 +629,10 @@ def users_login_post(body: dict):  # noqa: E501
     except ValueError as e:
         return str(e), 400
 
+    # Set session ID if not exists
+    if "session_id" not in session:
+        session["session_id"] = util.generate_session_id()
+
     # Find user associated with the email
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT user_id, name, auth_token, password FROM Users WHERE email = %s", [body.email])
@@ -651,7 +660,7 @@ def users_login_post(body: dict):  # noqa: E501
 
         # Set cookie and return the response
         log.info(f"Succesfully logged in user '{name}' ({user_id}).")
-        response = make_response(f"Succesfully logged in user '{name}'.")
+        response = make_response(f"Succesfully logged in user '{name}' ({user_id}).")
         response.set_cookie("user_token", auth_token)
         return response, 200
 

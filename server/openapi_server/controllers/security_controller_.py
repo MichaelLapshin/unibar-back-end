@@ -1,4 +1,6 @@
 from typing import List
+from connexion.exceptions import OAuthProblem
+from flask import session
 
 from openapi_server.database.db_rds import db
 from openapi_server import constants
@@ -22,6 +24,9 @@ class AuthInstance(object):
     @property
     def id(self) -> str:
         return self._id
+    
+    def __str__(self) -> str:
+        return f"{self.type}-{self.id}"
 
 def info_from_AdminAuth(api_key: str, required_scopes):
     """
@@ -38,19 +43,21 @@ def info_from_AdminAuth(api_key: str, required_scopes):
     """
     log.info("Authenticating an admin...")
     if not api_key:
-        return {"statusCode": 400, "message": "ApiKey must not be empty when authenticating as an admin."}
+        raise OAuthProblem("ApiKey must non-empty when authenticating as an admin.")
 
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT admin_id, name FROM Admins WHERE auth_token = %s", [api_key])
         row = cursor.fetchone()
         if not row:
             log.info("auth token does not map to an admin")
-            return {"statusCode": 401, "message": "Invalid admin credentials."}
+            raise OAuthProblem("Invalid admin credentials.")
 
         admin_id = row["admin_id"]
         name = row["name"]
-        log.info(f"Successfully authenticated admin '{name}' ({admin_id}).")
-        return {'sub': AuthInstance(type=constants.AUTH_TYPE_ADMIN, id=admin_id)}
+
+        auth_instance = AuthInstance(type=constants.AUTH_TYPE_ADMIN, id=admin_id)
+        log.info(f"Successfully authenticated admin '{name}' ({auth_instance}).")
+        return {'sub': auth_instance}
 
 def info_from_UserAuth(api_key: str, required_scopes):
     """
@@ -67,16 +74,18 @@ def info_from_UserAuth(api_key: str, required_scopes):
     """
     log.info("Authenticating a user...")
     if not api_key:
-        return {"statusCode": 400, "message": "ApiKey must not be empty when authenticating as a user."}
+        raise OAuthProblem("ApiKey must non-empty when authenticating as a user.")
 
     with db.conn.cursor() as cursor:
         cursor.execute("SELECT user_id, name FROM Users WHERE auth_token = %s", [api_key])
         row = cursor.fetchone()
         if not row:
             log.info("auth token does not map to a user")
-            return {"statusCode": 401, "message": "Invalid user credentials."}
+            raise OAuthProblem("Invalid user credentials.")
 
         user_id = row["user_id"]
         name = row["name"]
-        log.info(f"Successfully authenticated user '{name}' ({user_id}).")
-        return {'sub': AuthInstance(type=constants.AUTH_TYPE_USER, id=user_id)}
+
+        auth_instance = AuthInstance(type=constants.AUTH_TYPE_USER, id=user_id)
+        log.info(f"Successfully authenticated user '{name}' ({auth_instance}).")
+        return {'sub': auth_instance}
