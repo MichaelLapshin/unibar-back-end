@@ -574,6 +574,18 @@ paths:
       summary: Log in a user. Set cookie auth token.
       x-openapi-router-controller: openapi_server.controllers.default_controller
     summary: Logging in a user.
+  /users/logout:
+    get:
+      operationId: users_logout_get
+      responses:
+        "200":
+          description: Succesfully logged out user.
+        "400":
+          description: Failed to log out user.
+      security:
+      - UserAuth: []
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    summary: Logs out user.
   /users/register:
     post:
       operationId: users_register_post

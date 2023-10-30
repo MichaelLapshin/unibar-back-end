@@ -62,7 +62,7 @@ def admin_login_post(body: dict):  # noqa: E501
         # Set cookie and return the response
         log.info(f"Succesfully logged in admin '{name}' ({admin_id}).")
         response = make_response(f"Succesfully logged in admin '{name}' ({admin_id}).")
-        response.set_cookie("admin_token", body.admin_token)
+        response.set_cookie("admin_token", body.admin_token, max_age=timedelta(hours=constants.MAX_COOKIE_AGE_HOURS))
         return response, 200
 
 
@@ -773,8 +773,35 @@ def users_login_post(body: dict):  # noqa: E501
         # Set cookie and return the response
         log.info(f"Succesfully logged in user '{name}' with email '{body.email}' ({user_id}).")
         response = make_response(f"Succesfully logged in user '{name}' ({user_id}).")
-        response.set_cookie("user_token", auth_token)
+        response.set_cookie("user_token", auth_token, max_age=timedelta(hours=constants.MAX_COOKIE_AGE_HOURS))
         return response, 200
+
+def users_logout_get(user):
+    """Log out a user. Set cookie user auth token null.
+
+     # noqa: E501
+
+    :param body: 
+    :type body: dict | bytes
+
+    :rtype: str
+    """
+    log.info(f"Logging out {user}.")
+
+    # Nullify the database auth token
+    with db.conn.cursor() as cursor:
+        db.conn.begin()
+        cursor.execute("UPDATE Users SET auth_token = NULL WHERE user_id = %s", [user.id])
+        db.conn.commit()
+
+    # Nullify the auth cookie
+    response = make_response(f"Succesfully logged out user.")
+    response.set_cookie("user_token", "null", expires=0) # expires immediately
+
+    log.info(f"Successfully logged out user {user}")
+    return response, 200
+
+
 
 def users_register_post(body: dict):  # noqa: E501
     """Create a new user.

@@ -29,6 +29,7 @@ Class | Method | HTTP request | Description
 *DefaultApi* | [**userUserIdOrdersClaimedGet**](Apis/DefaultApi.md#useruseridordersclaimedget) | **GET** /user/{user_id}/orders/claimed | 
 *DefaultApi* | [**userUserIdUpdatePatch**](Apis/DefaultApi.md#useruseridupdatepatch) | **PATCH** /user/{user_id}/update | 
 *DefaultApi* | [**usersLoginPost**](Apis/DefaultApi.md#usersloginpost) | **POST** /users/login | Log in a user. Set cookie auth token.
+*DefaultApi* | [**usersLogoutGet**](Apis/DefaultApi.md#userslogoutget) | **GET** /users/logout | 
 *DefaultApi* | [**usersRegisterPost**](Apis/DefaultApi.md#usersregisterpost) | **POST** /users/register | Create a new user.
 
 

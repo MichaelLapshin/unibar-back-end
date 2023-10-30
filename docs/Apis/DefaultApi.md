@@ -26,6 +26,7 @@ Method | HTTP request | Description
 [**userUserIdOrdersClaimedGet**](DefaultApi.md#userUserIdOrdersClaimedGet) | **GET** /user/{user_id}/orders/claimed | 
 [**userUserIdUpdatePatch**](DefaultApi.md#userUserIdUpdatePatch) | **PATCH** /user/{user_id}/update | 
 [**usersLoginPost**](DefaultApi.md#usersLoginPost) | **POST** /users/login | Log in a user. Set cookie auth token.
+[**usersLogoutGet**](DefaultApi.md#usersLogoutGet) | **GET** /users/logout | 
 [**usersRegisterPost**](DefaultApi.md#usersRegisterPost) | **POST** /users/register | Create a new user.
 
 
@@ -555,6 +556,28 @@ No authorization required
 
 - **Content-Type**: application/json
 - **Accept**: application/json
+
+<a name="usersLogoutGet"></a>
+# **usersLogoutGet**
+> usersLogoutGet()
+
+
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+null (empty response body)
+
+### Authorization
+
+[UserAuth](../README.md#UserAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
 
 <a name="usersRegisterPost"></a>
 # **usersRegisterPost**

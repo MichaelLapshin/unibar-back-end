@@ -134,6 +134,17 @@ paths:
         400:
           description: Failed to log in user.
 
+  /users/logout:
+    get:
+      summary: Logs out user.
+      security:
+        - UserAuth: []
+      responses:
+        200:
+          description: Succesfully logged out user.
+        400:
+          description: Failed to log out user.
+
   /user/{user_id}/update:
     summary: Update user information.
     parameters:
