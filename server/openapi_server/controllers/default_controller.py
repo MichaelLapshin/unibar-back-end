@@ -607,6 +607,18 @@ def ping_get():  # noqa: E501
     log.info("Pinged server.")
     return "ping", 200
 
+def user_id_get(user):
+    """user_id_get
+
+     # noqa: E501
+
+    :param user: Authentication information of the user.
+    :type user: AuthInstance 
+
+    :rtype: User
+    """
+    log.info("Got user ID.")
+    return user.id
 
 def user_user_id_get(user_id):  # noqa: E501
     """user_user_id_get

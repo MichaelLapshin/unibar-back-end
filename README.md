@@ -1,8 +1,5 @@
 # UniBar Back-End
 
-## Standards
-- UTC time is assumed to be the time format.
-
 ## Logging into AWS EC2
 Use the AWS console to access the EC2 instance an open a terminal session to it.
 
@@ -22,24 +19,26 @@ UNIBAR_RDS_DATABASE = <rds_server_database>
 3. Start the server: `sudo -E python3 -m openapi_server` from the server directory
  - `sudo -E` runs the server as admin while keeping environment variables.
 
-## Creating a database and tables
-1. Fetch the UniBar back-end repository.
-2. Connect to the MySQL server (see steps below)
-3. Run the following SQL script: `database_scripts/create_database.sql`
-
-## Deleting the database and tables
-1. Fetch the UniBar back-end repository.
-2. Connect to the MySQL server (see steps below)
-3. Run the following SQL script: `database_scripts/delete_database.sql`
-
 ## Adding a new admin
 1. Fetch the UniBar back-end repository.
 2. Run the following bash script:
 `./database_scripts/insert_new_admin <user> <password> <host> <admin_name>`
 3. Record your admin's generated ID and token.
 
-## Accessing GitHub from EC2
+## Creating a database and tables (if does not exist)
+1. Fetch the UniBar back-end repository.
+2. Connect to the MySQL server (see steps below)
+3. Run the following SQL script: `database_scripts/create_database.sql`
+
+## Deleting the database and tables (WARNING: delete only if needed)
+1. Fetch the UniBar back-end repository.
+2. Connect to the MySQL server (see steps below)
+3. Run the following SQL script: `database_scripts/delete_database.sql`
+
+## Accessing GitHub from AWS EC2
+- This is a one-time setup when launching a new AWS EC2 instance.
 ```
+(generate github RSA key-pair and add read-only access to GitHub)
 eval $(ssh-agent -s)
 ssh-add ~/.ssh/github_rsa
 git pull

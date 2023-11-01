@@ -145,6 +145,17 @@ paths:
         400:
           description: Failed to log out user.
 
+  /user/id:
+    summary: Get the ID of the currently logged in user.
+    get:  
+      security:
+        - UserAuth: []
+      responses:
+        200:
+          description: Successfully fetched the logged-in user's id.
+        400:
+          description: Failed to fetch the logged-in user's id.
+
   /user/{user_id}/update:
     summary: Update user information.
     parameters:
