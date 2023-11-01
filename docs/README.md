@@ -24,6 +24,7 @@ Class | Method | HTTP request | Description
 *DefaultApi* | [**ordersAvailableGet**](Apis/DefaultApi.md#ordersavailableget) | **GET** /orders/available | 
 *DefaultApi* | [**pingGet**](Apis/DefaultApi.md#pingget) | **GET** /ping | 
 *DefaultApi* | [**shutdownGet**](Apis/DefaultApi.md#shutdownget) | **GET** /shutdown | 
+*DefaultApi* | [**userIdGet**](Apis/DefaultApi.md#useridget) | **GET** /user/id | 
 *DefaultApi* | [**userUserIdGet**](Apis/DefaultApi.md#useruseridget) | **GET** /user/{user_id} | 
 *DefaultApi* | [**userUserIdOrdersActiveGet**](Apis/DefaultApi.md#useruseridordersactiveget) | **GET** /user/{user_id}/orders/active | 
 *DefaultApi* | [**userUserIdOrdersClaimedGet**](Apis/DefaultApi.md#useruseridordersclaimedget) | **GET** /user/{user_id}/orders/claimed | 

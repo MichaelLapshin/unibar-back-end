@@ -21,6 +21,7 @@ Method | HTTP request | Description
 [**ordersAvailableGet**](DefaultApi.md#ordersAvailableGet) | **GET** /orders/available | 
 [**pingGet**](DefaultApi.md#pingGet) | **GET** /ping | 
 [**shutdownGet**](DefaultApi.md#shutdownGet) | **GET** /shutdown | 
+[**userIdGet**](DefaultApi.md#userIdGet) | **GET** /user/id | 
 [**userUserIdGet**](DefaultApi.md#userUserIdGet) | **GET** /user/{user_id} | 
 [**userUserIdOrdersActiveGet**](DefaultApi.md#userUserIdOrdersActiveGet) | **GET** /user/{user_id}/orders/active | 
 [**userUserIdOrdersClaimedGet**](DefaultApi.md#userUserIdOrdersClaimedGet) | **GET** /user/{user_id}/orders/claimed | 
@@ -425,6 +426,28 @@ null (empty response body)
 ### Authorization
 
 [AdminAuth](../README.md#AdminAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
+
+<a name="userIdGet"></a>
+# **userIdGet**
+> userIdGet()
+
+
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+null (empty response body)
+
+### Authorization
+
+[UserAuth](../README.md#UserAuth)
 
 ### HTTP request headers
 
