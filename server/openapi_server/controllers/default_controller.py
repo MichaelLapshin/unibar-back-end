@@ -49,7 +49,8 @@ def admin_login_post(body: dict):  # noqa: E501
         session["session_id"] = util.generate_session_id()
 
     # Find user associated with the email
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         cursor.execute("SELECT admin_id, name FROM Admins WHERE auth_token = %s", [body.admin_token])
         row = cursor.fetchone()
         if not row:
@@ -75,7 +76,8 @@ def admin_messages_list_get():  # noqa: E501
     :rtype: List[Message]
     """
     log.info("Getting all messages.")
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM Messages")
         results = cursor.fetchall()
         messages = [Message.from_dict(res) for res in results]
@@ -92,7 +94,8 @@ def admin_orders_list_get():  # noqa: E501
     :rtype: List[Order]
     """
     log.info("Getting all orders.")
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
         orders = [order_with_status(Order.from_dict(res)) for res in results]
@@ -108,7 +111,8 @@ def admin_reports_list_get():  # noqa: E501
     :rtype: List[Order]
     """
     log.info("Getting all reports.")
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM Reports")
         results = cursor.fetchall()
         reports = [Report.from_dict(res) for res in results]
@@ -124,7 +128,8 @@ def admin_users_list_get():  # noqa: E501
     :rtype: List[User]
     """
     log.info("Getting all users.")
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         cursor.execute("SELECT user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email FROM Users")
         results = cursor.fetchall()
         users = [User.from_dict(res) for res in results]
@@ -173,9 +178,10 @@ def message_post(body: dict):  # noqa: E501
         log.error(str(e))
         return str(e), 400
 
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         message_id = util.generate_uuid()
-        db.conn.begin()
+        conn.begin()
         cursor.execute(
             "INSERT INTO Messages (message_id, user_id, email, message, time) VALUES (%s, %s, %s, %s, %s)", 
             [
@@ -186,7 +192,7 @@ def message_post(body: dict):  # noqa: E501
                 datetime.now(timezone.utc)
             ]
         )
-        db.conn.commit()
+        conn.commit()
         
         log.info(f"Successfully sent a message (id: {message_id}) to UniBar.")
         return "Successfully sent a message to UniBar.", 200
@@ -211,8 +217,9 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
         return str(e), 400
 
     log.info(f"Attempting to complete an order with id {body.order_id}.")
-    with db.conn.cursor() as cursor:
-        db.conn.begin()
+    with db.conn as conn:
+        cursor = conn.cursor()
+        conn.begin()
 
         # Check that the order is being delivered
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
@@ -237,7 +244,7 @@ def order_complete_put(user: AuthInstance, body: dict):  # noqa: E501
         cursor.execute("UPDATE Users SET delivery_tokens = delivery_tokens + 1 WHERE user_id = %s", [order.deliverer_id])
         cursor.execute("UPDATE Orders SET delivered_time = %s WHERE order_id = %s", [datetime.now(timezone.utc), order.order_id])
 
-        db.conn.commit()
+        conn.commit()
         log.info(f"Successfully marked order {order.order_id} as complete.")
         return f"Successfully marked order {order.order_id} as complete.", 200
 
@@ -263,8 +270,9 @@ def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
         return str(e), 400
 
     log.info(f"Attempting to cancel the order {body.order_id}.")
-    with db.conn.cursor() as cursor:
-        db.conn.begin()
+    with db.conn as conn:
+        cursor = conn.cursor()
+        conn.begin()
 
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
@@ -289,7 +297,7 @@ def order_cancel_put(user: AuthInstance, body: dict):  # noqa: E501
             "UPDATE Orders SET cancelled_time = %s WHERE order_id = %s",
             [datetime.now(timezone.utc), body.order_id]
         )
-        db.conn.commit()
+        conn.commit()
     
         log.info(f"Successfully cancelled the order with id {order.order_id}.")
         return "Successfully cancelled the order.", 200
@@ -316,8 +324,9 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
         return str(e), 400
 
     log.info(f"Attempting to claim the order {body.order_id}.")
-    with db.conn.cursor() as cursor:
-        db.conn.begin()
+    with db.conn as conn:
+        cursor = conn.cursor()
+        conn.begin()
 
         # Check that the order is available
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", body.order_id)
@@ -351,7 +360,7 @@ def order_claim_put(user: AuthInstance, body: dict):  # noqa: E501
             "UPDATE Orders SET deliverer_id = %s, claimed_time = %s WHERE order_id = %s",
             [user.id, datetime.now(timezone.utc), body.order_id]
         )
-        db.conn.commit()
+        conn.commit()
     
         log.info(f"Successfully claimed the order with id {order.order_id}.")
         return "Successfully claimed the order.", 200
@@ -379,8 +388,9 @@ def order_unclaim_put(user: AuthInstance, body: dict):
         return str(e), 400
 
     log.info(f"Attempting to unclaim the order with id {body.order_id}.")
-    with db.conn.cursor() as cursor:
-        db.conn.begin()
+    with db.conn as conn:
+        cursor = conn.cursor()
+        conn.begin()
 
         # Assert that the order to undeliver is being delivered by the user.
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
@@ -405,7 +415,7 @@ def order_unclaim_put(user: AuthInstance, body: dict):
             "UPDATE Orders SET deliverer_id = %s, claimed_time = %s WHERE order_id = %s",
             [None, None, body.order_id]
         )
-        db.conn.commit()
+        conn.commit()
 
         log.info(f"Successfully unclaimed the order with id {order.order_id}.")
         return "Successfully unclaimed the order.", 200
@@ -422,7 +432,8 @@ def order_order_id_get(order_id):  # noqa: E501
     :rtype: Order
     """
     log.info("Getting an order.")
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         cursor.execute(
             "SELECT * FROM Orders WHERE order_id = %s", 
             [order_id]
@@ -457,8 +468,9 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
         return str(e), 400
 
     log.info(f"Attempting to report for order with id {body.order_id}.")
-    with db.conn.cursor() as cursor:
-        db.conn.begin()
+    with db.conn as conn:
+        cursor = conn.cursor()
+        conn.begin()
 
         # Validate that the reporter_user_id and reported_user_id are part of the order
         cursor.execute("SELECT * FROM Orders WHERE order_id = %s", [body.order_id])
@@ -489,7 +501,7 @@ def order_report_post(user: AuthInstance, body: dict):  # noqa: E501
                 body.message
             ]
         )
-        db.conn.commit()
+        conn.commit()
 
         # TODO: add logic to notify admins of the report
 
@@ -519,8 +531,9 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
 
     log.info("Attempting to create an order.")
     current_time = datetime.now(timezone.utc)
-    with db.conn.cursor() as cursor:
-        db.conn.begin()
+    with db.conn as conn:
+        cursor = conn.cursor()
+        conn.begin()
 
         cursor.execute( "SELECT * FROM Users WHERE user_id = %s", [user.id])
         row = cursor.fetchone()
@@ -571,7 +584,7 @@ def order_create_post(user: AuthInstance, body: dict):  # noqa: E501
                 body.payment_method
             ]
         )
-        db.conn.commit()
+        conn.commit()
 
         log.info(f"Successfully created a delivery request with id {order_id}.")
         return f"Successfully created a delivery request.", 200
@@ -586,7 +599,8 @@ def orders_available_get():  # noqa: E501
     :rtype: List[Order]
     """
     log.info("Getting available orders.")
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders")
         results = cursor.fetchall()
@@ -631,7 +645,8 @@ def user_user_id_get(user_id):  # noqa: E501
     :rtype: User
     """
     log.info("Getting user.")
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         cursor.execute("SELECT user_id, name, email, registered_time, delivery_tokens, phone_number, etransfer_email FROM Users WHERE user_id = %s", [user_id])
         row = cursor.fetchone()
         if not row:
@@ -652,7 +667,8 @@ def user_user_id_orders_claimed_get(user_id):  # noqa: E501
     :rtype: List[Order]
     """
     log.info(f"Getting claimed orders for user with id {user_id}.")
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE deliverer_id = %s", [user_id])
         results = cursor.fetchall()
@@ -673,7 +689,8 @@ def user_user_id_orders_active_get(user_id):  # noqa: E501
     :rtype: List[Order]
     """
     log.info(f"Getting active orders for user with id {user_id}.")
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         # TODO: make query more efficient by fetching orders using boolean logic instead of fetching all
         cursor.execute("SELECT * FROM Orders WHERE orderer_id = %s", [user_id])
         results = cursor.fetchall()
@@ -711,8 +728,9 @@ def user_user_id_update_patch(user: AuthInstance, user_id, body: dict):  # noqa:
         return str(e), 400
 
     log.info(f"Attempting to update info for user with id {user_id}.")
-    with db.conn.cursor() as cursor:
-        db.conn.begin()
+    with db.conn as conn:
+        cursor = conn.cursor()
+        conn.begin()
         if body.name is not None:
             log.info("Updating user's name.")
             cursor.execute("UPDATE Users SET name = %s WHERE user_id = %s", [body.name, user_id])
@@ -725,7 +743,7 @@ def user_user_id_update_patch(user: AuthInstance, user_id, body: dict):  # noqa:
         if body.etransfer_email is not None:
             log.info("Updating user's etransfer email.")
             cursor.execute("UPDATE Users SET etransfer_email = %s WHERE user_id = %s", [body.etransfer_email, user_id])
-        db.conn.commit()
+        conn.commit()
 
     log.info(f"Successfully updated information of user with id {user_id}.")
     return "Successfully updated user information.", 200
@@ -756,7 +774,8 @@ def users_login_post(body: dict):  # noqa: E501
 
     # Find user associated with the email
     log.info(f"Attempting to log in user with email {body.email}.")
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         cursor.execute("SELECT user_id, name, auth_token, password FROM Users WHERE email = %s", [body.email])
         row = cursor.fetchone()
         if not row:
@@ -775,12 +794,12 @@ def users_login_post(body: dict):  # noqa: E501
             auth_token = secrets.token_hex(16) # 32 chars
             assert len(auth_token) == constants.AUTH_TOKEN_LENGTH
 
-            db.conn.begin()
+            conn.begin()
             cursor.execute(
                 "UPDATE Users SET auth_token = %s WHERE user_id = %s",
                 [auth_token, user_id]
             )
-            db.conn.commit()
+            conn.commit()
 
         # Set cookie and return the response
         log.info(f"Succesfully logged in user '{name}' with email '{body.email}' ({user_id}).")
@@ -801,10 +820,11 @@ def users_logout_get(user):
     log.info(f"Logging out {user}.")
 
     # Nullify the database auth token
-    with db.conn.cursor() as cursor:
-        db.conn.begin()
+    with db.conn as conn:
+        cursor = conn.cursor()
+        conn.begin()
         cursor.execute("UPDATE Users SET auth_token = NULL WHERE user_id = %s", [user.id])
-        db.conn.commit()
+        conn.commit()
 
     # Nullify the auth cookie
     response = make_response(f"Succesfully logged out user.")
@@ -841,8 +861,9 @@ def users_register_post(body: dict):  # noqa: E501
         
         # TODO: Add email-confirmation logic
 
-    with db.conn.cursor() as cursor:
-        db.conn.begin()
+    with db.conn as conn:
+        cursor = conn.cursor()
+        conn.begin()
         
         # Checks if user already exists. Return error message if not.
         cursor.execute("SELECT COUNT(*) FROM Users WHERE email = %s", [body.email])
@@ -864,7 +885,7 @@ def users_register_post(body: dict):  # noqa: E501
                 body.phone_number
             ]
         )
-        db.conn.commit()
+        conn.commit()
     
         log.info(f"Successfully registered user {body.name} (user_id: {new_user_id}).")
         return f"Successfully registered user {body.name} (user_id: {new_user_id}).", 200

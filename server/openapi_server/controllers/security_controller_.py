@@ -45,7 +45,9 @@ def info_from_AdminAuth(api_key: str, required_scopes):
     if not api_key:
         raise OAuthProblem("ApiKey must non-empty when authenticating as an admin.")
 
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
+
         cursor.execute("SELECT admin_id, name FROM Admins WHERE auth_token = %s", [api_key])
         row = cursor.fetchone()
         if not row:
@@ -76,7 +78,8 @@ def info_from_UserAuth(api_key: str, required_scopes):
     if not api_key:
         raise OAuthProblem("ApiKey must non-empty when authenticating as a user.")
 
-    with db.conn.cursor() as cursor:
+    with db.conn as conn:
+        cursor = conn.cursor()
         cursor.execute("SELECT user_id, name FROM Users WHERE auth_token = %s", [api_key])
         row = cursor.fetchone()
         if not row:
