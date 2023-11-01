@@ -13,10 +13,8 @@ def main():
         f.write(str(os.getpid()))
 
     # Start the server
-    db.connect()
     server_thread.start()
     server_thread.join()
-    db.close()
 
 if __name__ == '__main__':
     main()
